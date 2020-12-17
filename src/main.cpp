@@ -10,10 +10,10 @@ struct State2D {
 };
 NANOPLAN_MAKE_STATE_HASHABLE(State2D, s.x, s.y);
 
-class SearchSpace2D : public nanoplan::SearchSpace<State2D> {
+class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
     public:
         std::vector<std::pair<State2D, double>>
-        getSuccessors(const State2D& state) override {
+        get_successors(const State2D& state) override {
             std::vector<std::pair<State2D, double>> succs;
             succs.push_back( { { state.x, state.y+1 }, 1.0} );
             succs.push_back( { { state.x+1, state.y }, 1.0} );
@@ -30,13 +30,13 @@ class SearchSpace2D : public nanoplan::SearchSpace<State2D> {
         }
 
         std::vector<std::pair<State2D, double>>
-            getPredecessors(const State2D& state) override {
-            return getSuccessors(state);
+        get_predecessors(const State2D& state) override {
+            return get_successors(state);
         }
 
-        double getHeuristic(const State2D& state) override {
-            return (state.x-this->goal.x)*(state.x-this->goal.x) +
-                   (state.y-this->goal.y)*(state.y-this->goal.y);
+        double get_from_to_heuristic(const State2D& from, const State2D& to) override {
+            return (from.x-to.x)*(from.x-to.x) +
+                   (from.y-to.y)*(from.y-to.y);
         }
 };
 
@@ -46,26 +46,20 @@ int main(int argc, char** argv) {
 
     SearchSpace2D space2d;
     State2D start { 0, 0 };
-    State2D goal { 101, 101 };
+    State2D goal { 401, 401 };
+
+    Planner<SearchSpace2D, State2D>::Options options;
+    options.timeout_ms = 100000.0;
 
     {
-        space2d.setStart( start );
-        space2d.setGoal( goal );
-        AStar<SearchSpace2D, State2D> astar(space2d);
-        astar.set_timeout_ms(1000.0);
+        Dijkstra<SearchSpace2D, State2D> planner(space2d);
+        planner.set_start(start);
+        planner.set_goal(goal);
+        planner.set_options(options);
 
-        const auto plan = astar.plan();
-        fmt::print(astar.full_report()+'\n');
-    }
-
-    {
-        space2d.setStart( start );
-        space2d.setGoal( goal );
-        Dijkstra<SearchSpace2D, State2D> dijkstra(space2d);
-        dijkstra.set_timeout_ms(5000.0);
-
-        const auto plan = dijkstra.plan();
-        fmt::print(dijkstra.full_report()+'\n');
+        const auto plan = planner.plan();
+        fmt::print(planner.full_report());
+        fmt::print("\n");
     }
 
     return 0;

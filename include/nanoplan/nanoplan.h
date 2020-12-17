@@ -5,9 +5,10 @@
 
 #include "astar.h"
 #include "dijkstra.h"
-#include "search_space.h"
-#include "search.h"
+#include "lpastar.h"
 #include "hash.h"
+#include "search.h"
+#include "search_space.h"
 
 namespace nanoplan {
 } // namespace nanoplan
