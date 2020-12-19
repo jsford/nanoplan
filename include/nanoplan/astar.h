@@ -13,35 +13,37 @@
 
 namespace nanoplan {
 
-template <typename SPACE, typename STATE>
-class AStar final : public Planner<SPACE, STATE> {
+template <typename SPACE>
+class AStar final : public Planner<SPACE> {
     public:
         AStar(const SPACE& space);
 
         std::string planner_name() const override;
 
-        std::vector<STATE> plan() override;
+        std::vector<typename SPACE::state_type> plan() override;
 
     private:
-        using Planner<SPACE,STATE>::space;
-        using Planner<SPACE,STATE>::start;
-        using Planner<SPACE,STATE>::goal;
-        using Planner<SPACE,STATE>::options;
-        using Planner<SPACE,STATE>::summary;
-        using Planner<SPACE,STATE>::start_timer;
-        using Planner<SPACE,STATE>::check_timer;
+        using Planner<SPACE>::space;
+        using Planner<SPACE>::start;
+        using Planner<SPACE>::goal;
+        using Planner<SPACE>::options;
+        using Planner<SPACE>::summary;
+        using Planner<SPACE>::start_timer;
+        using Planner<SPACE>::check_timer;
 };
 
-template <typename SPACE, typename STATE>
-AStar<SPACE,STATE>::AStar(const SPACE& space) : Planner<SPACE, STATE>(space) {}
+template <typename SPACE>
+AStar<SPACE>::AStar(const SPACE& space) : Planner<SPACE>(space) {}
 
-template <typename SPACE, typename STATE>
-std::string AStar<SPACE,STATE>::planner_name() const {
+template <typename SPACE>
+std::string AStar<SPACE>::planner_name() const {
     return "AStar";
 }
 
-template <typename SPACE, typename STATE>
-std::vector<STATE> AStar<SPACE,STATE>::plan() {
+template <typename SPACE>
+std::vector<typename SPACE::state_type> AStar<SPACE>::plan() {
+    using STATE = typename SPACE::state_type;
+
     start_timer();
 
     PriorityQueue<STATE> pq;
@@ -59,12 +61,12 @@ std::vector<STATE> AStar<SPACE,STATE>::plan() {
         summary.expansions++;
 
         if( curr_state == goal ) {
-            summary.termination = Planner<SPACE,STATE>::Termination::SUCCESS;
+            summary.termination = Termination::SUCCESS;
             break;
         }
 
         if( options.timeout_ms > 0.0 && check_timer() >= 1000*options.timeout_ms ) {
-            summary.termination = Planner<SPACE,STATE>::Termination::TIMEOUT;
+            summary.termination = Termination::TIMEOUT;
             break;
         }
 
@@ -90,7 +92,7 @@ std::vector<STATE> AStar<SPACE,STATE>::plan() {
 
     std::vector<STATE> path;
 
-    if( summary.termination == Planner<SPACE,STATE>::Termination::SUCCESS ) {
+    if( summary.termination == Termination::SUCCESS ) {
         STATE s = goal;
         while( !(s == start) ) {
             path.push_back(s);
@@ -100,11 +102,11 @@ std::vector<STATE> AStar<SPACE,STATE>::plan() {
 
         std::reverse(path.begin(), path.end());
         summary.total_cost = gscores[goal];
-        summary.termination = Planner<SPACE,STATE>::Termination::SUCCESS;
-    } else if( summary.termination == Planner<SPACE,STATE>::Termination::TIMEOUT ) {
+        summary.termination = Termination::SUCCESS;
+    } else if( summary.termination == Termination::TIMEOUT ) {
         summary.total_cost = 0.0;
     } else {
-        summary.termination = Planner<SPACE,STATE>::Termination::UNREACHABLE;
+        summary.termination = Termination::UNREACHABLE;
     }
 
     summary.elapsed_usec = check_timer();

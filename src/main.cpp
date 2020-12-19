@@ -3,8 +3,8 @@
 #include <vector>
 
 struct State2D {
-    int x;
-    int y;
+    long int x;
+    long int y;
 
     bool operator==(const State2D& rhs) const { return x==rhs.x && y==rhs.y; }
 };
@@ -42,17 +42,37 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
 
 
 int main(int argc, char** argv) {
-    using namespace nanoplan;
-
     SearchSpace2D space2d;
     State2D start { 0, 0 };
     State2D goal { 401, 401 };
 
-    Planner<SearchSpace2D, State2D>::Options options;
-    options.timeout_ms = 100000.0;
+    nanoplan::Options options;
+    options.timeout_ms = 10000.0;
 
     {
-        Dijkstra<SearchSpace2D, State2D> planner(space2d);
+        nanoplan::Dijkstra<SearchSpace2D> planner(space2d);
+        planner.set_start(start);
+        planner.set_goal(goal);
+        planner.set_options(options);
+
+        const auto plan = planner.plan();
+        fmt::print(planner.full_report());
+        fmt::print("\n");
+    }
+
+    {
+        nanoplan::AStar<SearchSpace2D> planner(space2d);
+        planner.set_start(start);
+        planner.set_goal(goal);
+        planner.set_options(options);
+
+        const auto plan = planner.plan();
+        fmt::print(planner.full_report());
+        fmt::print("\n");
+    }
+
+    {
+        nanoplan::LPAStar<SearchSpace2D> planner(space2d);
         planner.set_start(start);
         planner.set_goal(goal);
         planner.set_options(options);

@@ -10,6 +10,8 @@ namespace nanoplan {
 template <typename STATE>
 class SearchSpace {
     public: 
+        typedef STATE state_type;
+
         virtual ~SearchSpace() {}
 
         virtual std::vector<std::pair<STATE, double>>

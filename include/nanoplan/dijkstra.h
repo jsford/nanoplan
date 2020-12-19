@@ -11,40 +11,41 @@
 
 namespace nanoplan {
 
-template <typename SPACE, typename STATE>
-class Dijkstra final : public Planner<SPACE, STATE> {
+template <typename SPACE>
+class Dijkstra final : public Planner<SPACE> {
     public:
-
         // Construct an algorithm to search over a given search space.
         Dijkstra(const SPACE& space);
 
         // Search over the search space.
-        std::vector<STATE> plan() override;
+        std::vector<typename SPACE::state_type> plan() override;
 
         std::string planner_name() const override {
             return "Dijkstra";
         }
 
     private:
-        using Planner<SPACE,STATE>::space;
-        using Planner<SPACE,STATE>::start;
-        using Planner<SPACE,STATE>::goal;
-        using Planner<SPACE,STATE>::options;
-        using Planner<SPACE,STATE>::summary;
-        using Planner<SPACE,STATE>::start_timer;
-        using Planner<SPACE,STATE>::check_timer;
+        using Planner<SPACE>::space;
+        using Planner<SPACE>::start;
+        using Planner<SPACE>::goal;
+        using Planner<SPACE>::options;
+        using Planner<SPACE>::summary;
+        using Planner<SPACE>::start_timer;
+        using Planner<SPACE>::check_timer;
 };
 
-template <typename SPACE, typename STATE>
-Dijkstra<SPACE,STATE>::Dijkstra(const SPACE& space) :
-    Planner<SPACE, STATE>(space) {}
+template <typename SPACE>
+Dijkstra<SPACE>::Dijkstra(const SPACE& space) :
+    Planner<SPACE>(space) {}
 
-template <typename SPACE, typename STATE>
-std::vector<STATE> Dijkstra<SPACE,STATE>::plan() {
+template <typename SPACE>
+std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan() {
+    using STATE = typename SPACE::state_type;
+
     start_timer();
 
     PriorityQueue<STATE> pq;
-    std::unordered_map<STATE,STATE> preds;
+    std::unordered_map<STATE, STATE> preds;
 
     pq.push( {start, 0} );
     preds[start] = start;
@@ -55,12 +56,12 @@ std::vector<STATE> Dijkstra<SPACE,STATE>::plan() {
         summary.expansions++;
 
         if( curr_state == goal ) {
-            summary.termination = Planner<SPACE,STATE>::Termination::SUCCESS;
+            summary.termination = Termination::SUCCESS;
             break;
         }
 
         if( options.timeout_ms > 0.0 && check_timer() >= 1000*options.timeout_ms ) {
-            summary.termination = Planner<SPACE,STATE>::Termination::TIMEOUT;
+            summary.termination = Termination::TIMEOUT;
             break;
         }
 
@@ -81,9 +82,9 @@ std::vector<STATE> Dijkstra<SPACE,STATE>::plan() {
 
     std::vector<STATE> path;
 
-    if(summary.termination == Planner<SPACE,STATE>::Termination::SUCCESS) {
+    if(summary.termination == Termination::SUCCESS) {
         summary.total_cost = pq.top().second;
-        STATE s = goal;
+        typename SPACE::state_type s = goal;
         while( !(s == start) ) {
             path.push_back(s);
             s = preds[s];
@@ -91,11 +92,11 @@ std::vector<STATE> Dijkstra<SPACE,STATE>::plan() {
         path.push_back(start);
 
         std::reverse(path.begin(), path.end());
-        summary.termination = Planner<SPACE,STATE>::Termination::SUCCESS;
-    } else if(summary.termination == Planner<SPACE,STATE>::Termination::TIMEOUT) {
+        summary.termination = Termination::SUCCESS;
+    } else if(summary.termination == Termination::TIMEOUT) {
         summary.total_cost = 0.0;
     } else {
-        summary.termination = Planner<SPACE,STATE>::Termination::UNREACHABLE;
+        summary.termination = Termination::UNREACHABLE;
         summary.total_cost = 0.0;
     }
     summary.elapsed_usec = check_timer();
