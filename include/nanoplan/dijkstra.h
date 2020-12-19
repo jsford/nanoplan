@@ -4,6 +4,7 @@
 #include "search_space.h"
 #include "planner.h"
 #include "priority_queue.h"
+#include "ext/flat_hash_map.hpp"
 #include <vector>
 #include <utility>
 #include <unordered_map>
@@ -45,7 +46,7 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan() {
     start_timer();
 
     PriorityQueue<STATE> pq;
-    std::unordered_map<STATE, STATE> preds;
+    ska::flat_hash_map<STATE, STATE> preds;
 
     pq.push( {start, 0} );
     preds[start] = start;

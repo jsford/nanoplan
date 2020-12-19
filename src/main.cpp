@@ -44,7 +44,7 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
 int main(int argc, char** argv) {
     SearchSpace2D space2d;
     State2D start { 0, 0 };
-    State2D goal { 401, 401 };
+    State2D goal { 1001, 1001 };
 
     nanoplan::Options options;
     options.timeout_ms = 10000.0;
