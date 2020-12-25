@@ -52,19 +52,19 @@ Dijkstra<SPACE>::plan(const typename SPACE::state_type& start,
     this->start = start;
     this->goal = goal;
 
-    PriorityQueue<STATE> pq;
+    PriorityQueue<STATE> open;
     ska::flat_hash_map<STATE,STATE> preds;
     ska::flat_hash_map<STATE,double> gscores;
     ska::flat_hash_set<STATE> closed;
 
-    pq.push( {start, 0.0} );
+    open.push( {start, 0.0} );
     preds[start] = start;
     gscores[start] = 0.0;
 
-    while( !pq.empty() ) {
-        const STATE curr_state = pq.top().first;
+    while( !open.empty() ) {
+        const STATE curr_state = open.top().first;
 
-        pq.pop();
+        open.pop();
         if( closed.find(curr_state) != closed.end() ) {
             continue;
         }
@@ -89,7 +89,7 @@ Dijkstra<SPACE>::plan(const typename SPACE::state_type& start,
             const double tentative_g = curr_gscore + succ_cost;
 
             if( gscores.find(succ) == gscores.end() || tentative_g < gscores.at(succ) ) {
-                pq.push( { succ, tentative_g } );
+                open.push( { succ, tentative_g } );
                 preds[succ] = curr_state;
                 gscores[succ] = tentative_g;
             }

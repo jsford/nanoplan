@@ -53,21 +53,20 @@ AStar<SPACE>::plan(const typename SPACE::state_type& start,
     this->start = start;
     this->goal = goal;
 
-    PriorityQueue<STATE> pq;
+    PriorityQueue<STATE> open;
     ska::flat_hash_map<STATE,STATE> preds;
     ska::flat_hash_map<STATE,double> gscores;
     ska::flat_hash_set<STATE> closed;
 
     const double h0 = space->get_from_to_heuristic(start, goal);
-    pq.push( {start, h0} );
+    open.push( {start, h0} );
     preds[start] = start;
     gscores[start] = 0.0;
 
-    while( !pq.empty() ) {
-        const STATE curr_state = pq.top().first;
-        const double curr_f = pq.top().second;
+    while( !open.empty() ) {
+        const STATE curr_state = open.top().first;
 
-        pq.pop();
+        open.pop();
         if( closed.find(curr_state) != closed.end() ) {
             continue;
         }
@@ -93,7 +92,7 @@ AStar<SPACE>::plan(const typename SPACE::state_type& start,
 
             if( gscores.find(succ) == gscores.end() || tentative_g < gscores.at(succ) ) {
                 double h = space->get_from_to_heuristic(succ, goal);
-                pq.push( { succ, tentative_g+h } );
+                open.push( { succ, tentative_g+h } );
                 preds[succ] = curr_state;
                 gscores[succ] = tentative_g;
             }
