@@ -10,7 +10,6 @@
 #include "search.h"
 #include "search_space.h"
 
-namespace nanoplan {
-} // namespace nanoplan
+namespace nanoplan {}  // namespace nanoplan
 
-#endif // NANOPLAN_INCLUDE_H
+#endif  // NANOPLAN_INCLUDE_H
