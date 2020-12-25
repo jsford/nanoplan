@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <memory>
 
 namespace nanoplan {
 
@@ -37,26 +38,17 @@ class Planner {
         void set_options(const Options& opts);
         Options get_options() const;
 
-        Planner(const SPACE& search_space);
+        Planner(std::shared_ptr<SPACE> search_space);
 
-        virtual std::vector<STATE> plan() = 0;
+        virtual std::vector<STATE> plan(const STATE& start, const STATE& goal) = 0;
         virtual std::vector<STATE> replan();
-        virtual void update_cost(const STATE& from, const STATE& to, double cost);
-
-
-        void set_start(const STATE& start);
-        void  set_goal(const STATE& goal);
-
-        STATE& get_start();
-        STATE& get_goal();
-        const STATE& get_start() const;
-        const STATE& get_goal() const;
+        virtual std::vector<STATE> replan(const STATE& start);
 
         virtual std::string planner_name() const = 0;
         std::string full_report();
 
     protected:
-        SPACE space;
+        std::shared_ptr<SPACE> space;
         STATE start;
         STATE goal;
 
@@ -82,31 +74,13 @@ Options Planner<SPACE>::get_options() const {
 }
 
 template <typename SPACE>
-Planner<SPACE>::Planner(const SPACE& search_space) : space(search_space) {}
+Planner<SPACE>::Planner(std::shared_ptr<SPACE> search_space) : space(search_space) {}
 
 template <typename SPACE>
-std::vector<typename SPACE::state_type> Planner<SPACE>::replan() { return plan(); }
+std::vector<typename SPACE::state_type> Planner<SPACE>::replan() { return plan(start, goal); }
 
 template <typename SPACE>
-void Planner<SPACE>::set_start(const STATE& start) { this->start = start; }
-
-template <typename SPACE>
-void Planner<SPACE>::set_goal(const STATE& goal) { this->goal = goal; }
-
-template <typename SPACE>
-typename SPACE::state_type& Planner<SPACE>::get_start() { return start; }
-
-template <typename SPACE>
-typename SPACE::state_type& Planner<SPACE>::get_goal() { return goal; }
-
-template <typename SPACE>
-const typename SPACE::state_type& Planner<SPACE>::get_start() const { return start; }
-
-template <typename SPACE>
-const typename SPACE::state_type& Planner<SPACE>::get_goal() const { return goal; }
-
-template <typename SPACE>
-void Planner<SPACE>::update_cost(const STATE& from, const STATE& to, double cost) {}
+std::vector<typename SPACE::state_type> Planner<SPACE>::replan(const typename SPACE::state_type& start) { return plan(start, goal); }
 
 template <typename SPACE>
 std::string Planner<SPACE>::full_report() {

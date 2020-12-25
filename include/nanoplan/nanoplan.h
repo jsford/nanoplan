@@ -5,7 +5,7 @@
 
 #include "astar.h"
 #include "dijkstra.h"
-#include "lpastar.h"
+//#include "lpastar.h"
 #include "hash.h"
 #include "search.h"
 #include "search_space.h"

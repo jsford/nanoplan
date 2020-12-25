@@ -5,8 +5,7 @@
 #include "planner.h"
 #include "priority_queue.h"
 #include "ext/flat_hash_map.hpp"
-#include <unordered_map>
-#include <unordered_set>
+#include <memory>
 #include <vector>
 #include <algorithm>
 
@@ -17,11 +16,13 @@ namespace nanoplan {
 template <typename SPACE>
 class AStar final : public Planner<SPACE> {
     public:
-        AStar(const SPACE& space);
+        AStar(std::shared_ptr<SPACE> space);
 
         std::string planner_name() const override;
 
-        std::vector<typename SPACE::state_type> plan() override;
+        std::vector<typename SPACE::state_type>
+        plan(const typename SPACE::state_type& start,
+             const typename SPACE::state_type& goal) override;
 
     private:
         using Planner<SPACE>::space;
@@ -34,7 +35,7 @@ class AStar final : public Planner<SPACE> {
 };
 
 template <typename SPACE>
-AStar<SPACE>::AStar(const SPACE& space) : Planner<SPACE>(space) {}
+AStar<SPACE>::AStar(std::shared_ptr<SPACE> space) : Planner<SPACE>(space) {}
 
 template <typename SPACE>
 std::string AStar<SPACE>::planner_name() const {
@@ -42,26 +43,35 @@ std::string AStar<SPACE>::planner_name() const {
 }
 
 template <typename SPACE>
-std::vector<typename SPACE::state_type> AStar<SPACE>::plan() {
+std::vector<typename SPACE::state_type>
+AStar<SPACE>::plan(const typename SPACE::state_type& start,
+                   const typename SPACE::state_type& goal)
+{
     using STATE = typename SPACE::state_type;
-
     start_timer();
 
-    struct BookkeepingData {
-        STATE pred;
-        double gscore;
-    };
+    this->start = start;
+    this->goal = goal;
 
     PriorityQueue<STATE> pq;
-    ska::flat_hash_map<STATE,BookkeepingData> bookkeeping;
+    ska::flat_hash_map<STATE,STATE> preds;
+    ska::flat_hash_map<STATE,double> gscores;
     ska::flat_hash_set<STATE> closed;
 
-    pq.push( {start, 0} );
-    bookkeeping[start] = { start, 0.0 };
+    const double h0 = space->get_from_to_heuristic(start, goal);
+    pq.push( {start, h0} );
+    preds[start] = start;
+    gscores[start] = 0.0;
 
     while( !pq.empty() ) {
-        const auto curr_state = pq.top().first;
-        const auto curr_cost  = pq.top().second;
+        const STATE curr_state = pq.top().first;
+        const double curr_f = pq.top().second;
+
+        pq.pop();
+        if( closed.find(curr_state) != closed.end() ) {
+            continue;
+        }
+        closed.insert(curr_state);
         summary.expansions++;
 
         if( curr_state == goal ) {
@@ -74,42 +84,44 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan() {
             break;
         }
 
-        closed.insert(curr_state);
-        pq.pop();
+        const auto& succs = space->get_successors(curr_state);
 
-        const auto& succs = space.get_successors(curr_state);
-
-        const auto curr_gscore = bookkeeping[curr_state].gscore;
+        const auto curr_gscore = gscores[curr_state];
         for(const auto& succ : succs) {
-            const auto& succ_state = succ.first;
-            const auto& succ_cost  = succ.second;
+            const double succ_cost = space->get_from_to_cost(curr_state, succ);
+            const double tentative_g = curr_gscore + succ_cost;
 
-            if( closed.find(succ_state) == closed.end() ) {
-                double h = space.get_from_to_heuristic(succ_state, goal);
-                double g = succ_cost + curr_gscore;
-                pq.push( { succ_state, g+h } );
-                bookkeeping[succ_state] = { curr_state, g };
+            if( gscores.find(succ) == gscores.end() || tentative_g < gscores.at(succ) ) {
+                double h = space->get_from_to_heuristic(succ, goal);
+                pq.push( { succ, tentative_g+h } );
+                preds[succ] = curr_state;
+                gscores[succ] = tentative_g;
             }
         }
     }
 
     std::vector<STATE> path;
-
-    if( summary.termination == Termination::SUCCESS ) {
+    if( summary.termination == Termination::SUCCESS )
+    {
         STATE s = goal;
         while( !(s == start) ) {
             path.push_back(s);
-            s = bookkeeping[s].pred;
+            s = preds[s];
         };
         path.push_back(start);
 
         std::reverse(path.begin(), path.end());
-        summary.total_cost = bookkeeping[goal].gscore;
+        summary.total_cost = gscores[goal];
         summary.termination = Termination::SUCCESS;
-    } else if( summary.termination == Termination::TIMEOUT ) {
+    }
+    else if( summary.termination == Termination::TIMEOUT )
+    {
         summary.total_cost = 0.0;
-    } else {
+    }
+    else
+    {
         summary.termination = Termination::UNREACHABLE;
+        summary.total_cost = 0.0;
     }
 
     summary.elapsed_usec = check_timer();
