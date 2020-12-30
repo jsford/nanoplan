@@ -42,7 +42,6 @@ class Planner {
 
   virtual std::vector<STATE> plan(const STATE& start, const STATE& goal) = 0;
   virtual std::vector<STATE> replan();
-  virtual std::vector<STATE> replan(const STATE& start);
 
   virtual std::string planner_name() const = 0;
   std::string full_report();
@@ -78,12 +77,6 @@ Planner<SPACE>::Planner(std::shared_ptr<SPACE> search_space)
 
 template <typename SPACE>
 std::vector<typename SPACE::state_type> Planner<SPACE>::replan() {
-  return plan(start, goal);
-}
-
-template <typename SPACE>
-std::vector<typename SPACE::state_type> Planner<SPACE>::replan(
-    const typename SPACE::state_type& start) {
   return plan(start, goal);
 }
 

@@ -27,8 +27,6 @@ class LPAStar final : public Planner<SPACE> {
 
   std::vector<STATE> replan() override;
 
-  std::vector<STATE> replan(const STATE& start) override;
-
  private:
   struct PairCompare {
     bool operator()(const std::pair<double, double>& a,
@@ -82,7 +80,7 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::plan(const STATE& from,
   compute_shortest_path();
   const auto path = backtrack();
 
-  summary.elapsed_usec = check_timer();
+  summary.elapsed_usec += check_timer();
   summary.termination = Termination::SUCCESS;
   summary.total_cost = gscores.at(goal);
   return path;
@@ -91,11 +89,13 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::plan(const STATE& from,
 template <typename SPACE>
 std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
   start_timer();
-  compute_shortest_path();
+
   for (const auto& edge : space->get_changed_edges()) {
     const auto& to = edge.second;
     update_node(to);
   }
+
+  compute_shortest_path();
   const auto path = backtrack();
 
   summary.elapsed_usec = check_timer();
@@ -103,13 +103,6 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
   summary.total_cost = gscores.at(goal);
 
   return path;
-}
-
-template <typename SPACE>
-std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan(
-    const STATE& start) {
-  this->start = start;
-  return replan();
 }
 
 template <typename SPACE>
@@ -124,16 +117,8 @@ void LPAStar<SPACE>::initialize() {
 
 template <typename SPACE>
 void LPAStar<SPACE>::compute_shortest_path() {
-
-  const auto goal_key = calculate_key(goal);
-  while (!pq.empty()) {
-    if (pq.top_priority() >= goal_key) {
-      break;
-    }
-    if (rscores.at(goal) != INF_DBL && rscores.at(goal) == gscores.at(goal)) {
-      break;
-    }
-
+  while (!pq.empty() && (pq.top_priority() < calculate_key(goal) ||
+                         rscores.at(goal) != gscores.at(goal))) {
     const auto curr_state = pq.top();
     pq.pop();
     summary.expansions++;
@@ -157,13 +142,14 @@ void LPAStar<SPACE>::update_node(const STATE& state) {
     for (const auto& pred : space->get_predecessors(state)) {
       const double r =
           std::min(rscores.at(state),
-                   gscores.at(pred) + space->get_from_to_cost(state, pred));
+                   gscores.at(pred) + space->get_from_to_cost(pred, state));
       rscores.put(state, r);
     }
-    pq.remove(state);
-    if (gscores.at(state) != rscores.at(state)) {
-      pq.insert(state, calculate_key(state));
-    }
+  }
+  pq.remove(state);
+
+  if (gscores.at(state) != rscores.at(state)) {
+    pq.insert(state, calculate_key(state));
   }
 }
 

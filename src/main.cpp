@@ -16,8 +16,9 @@ NANOPLAN_MAKE_STATE_HASHABLE(State2D, s.x, s.y);
 
 class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
  public:
-  static const int w = 1000;
-  static const int h = 1000;
+  static const int w = 90;
+  static const int h = 90;
+  bool use_new_cost = false;
 
   std::vector<State2D> get_successors(const State2D& state) override {
     std::vector<State2D> succs;
@@ -55,17 +56,27 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
   }
 
   double get_from_to_cost(const State2D& from, const State2D& to) override {
-    return std::sqrt((to.x - from.x) * (to.x - from.x) +
-                     (to.y - from.y) * (to.y - from.y));
+    if (use_new_cost && to.x == to.y) {
+      return 10 * std::sqrt((to.x - from.x) * (to.x - from.x) +
+                            (to.y - from.y) * (to.y - from.y));
+    } else {
+      return std::sqrt((to.x - from.x) * (to.x - from.x) +
+                       (to.y - from.y) * (to.y - from.y));
+    }
   }
 
   double get_from_to_heuristic(const State2D& from,
                                const State2D& to) override {
-    return get_from_to_cost(from, to);
+    return std::sqrt((to.x - from.x) * (to.x - from.x) +
+                     (to.y - from.y) * (to.y - from.y));
   }
 
   std::vector<std::pair<State2D, State2D>> get_changed_edges() override {
-    return {};
+    std::vector<std::pair<State2D, State2D>> edges;
+    for (int i = 0; i < w; ++i) {
+      edges.push_back(std::make_pair(State2D{0, 0}, State2D{i, i}));
+    }
+    return edges;
   }
 };
 
@@ -73,7 +84,7 @@ int main(int argc, char** argv) {
   std::shared_ptr<SearchSpace2D> space2d = std::make_shared<SearchSpace2D>();
 
   State2D start{0, 0};
-  State2D goal{999, 999};
+  State2D goal{89, 89};
 
   nanoplan::Options options;
   options.timeout_ms = 10000.0;
@@ -103,10 +114,18 @@ int main(int argc, char** argv) {
     const auto plan0 = planner.plan(start, goal);
     fmt::print(planner.full_report());
     fmt::print("\n");
+    for (const auto& s : plan0) {
+      fmt::print("({}, {})\n", s.x, s.y);
+    }
 
-    const auto plan1 = planner.replan(State2D{1, 1});
+    space2d->use_new_cost = true;
+
+    const auto plan1 = planner.replan();
     fmt::print(planner.full_report());
     fmt::print("\n");
+    for (const auto& s : plan1) {
+      fmt::print("({}, {})\n", s.x, s.y);
+    }
   }
 
   return 0;
