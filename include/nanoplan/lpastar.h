@@ -186,6 +186,7 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::backtrack() {
     path.push_back(state);
     state = best_pred;
   }
+  path.push_back(start);
   std::reverse(path.begin(), path.end());
   return path;
 }

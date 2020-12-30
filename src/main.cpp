@@ -16,8 +16,8 @@ NANOPLAN_MAKE_STATE_HASHABLE(State2D, s.x, s.y);
 
 class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
  public:
-  static const int w = 90;
-  static const int h = 90;
+  static const int w = 100;
+  static const int h = 100;
   bool use_new_cost = false;
 
   std::vector<State2D> get_successors(const State2D& state) override {
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
   std::shared_ptr<SearchSpace2D> space2d = std::make_shared<SearchSpace2D>();
 
   State2D start{0, 0};
-  State2D goal{89, 89};
+  State2D goal{3, 9};
 
   nanoplan::Options options;
   options.timeout_ms = 10000.0;
