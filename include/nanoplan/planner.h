@@ -16,8 +16,7 @@ enum class Termination {
   SUCCESS,             // The planner found a path from the start to the goal.
   UNREACHABLE,         // The goal is not reachable from the start.
   TIMEOUT,             // The planner exceeded its allotted planning time.
-  TERMINATION_NOT_SET  // The planning algorithm forgot to set the termination
-                       // condition.
+  TERMINATION_NOT_SET  // The planner forgot to set the termination condition.
 };
 
 struct Options {
@@ -25,8 +24,8 @@ struct Options {
 };
 
 struct Summary {
-  double elapsed_usec = -1.0;
-  double total_cost = -1.0;
+  double elapsed_usec = 0.0;
+  double total_cost = 0.0;
   unsigned long long expansions = 0;
   Termination termination = Termination::TERMINATION_NOT_SET;
 };

@@ -55,16 +55,16 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
     double gscore;
   };
 
-  PriorityQueue<STATE> open;
+  PriorityQueue<STATE, double> open;
   ska::flat_hash_set<STATE> closed;
   ska::flat_hash_map<STATE, NodeData> nodemap;
 
-  open.push({start, 0.0});
+  open.insert(start, 0.0);
   nodemap[start].pred = start;
   nodemap[start].gscore = 0.0;
 
   while (!open.empty()) {
-    const STATE curr_state = open.top().first;
+    const STATE curr_state = open.top();
 
     open.pop();
     if (closed.find(curr_state) != closed.end()) {
@@ -93,7 +93,7 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
 
       if (nodemap.find(succ) == nodemap.end() ||
           tentative_g < nodemap.at(succ).gscore) {
-        open.push({succ, tentative_g});
+        open.insert(succ, tentative_g);
         nodemap[succ].pred = curr_state;
         nodemap[succ].gscore = tentative_g;
       }

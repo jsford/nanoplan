@@ -62,7 +62,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
   // The open queue is a priority queue containing the frontier.
   // Nodes in open have been reached by the search but have not yet been
   // expanded.
-  PriorityQueue<STATE> open;
+  PriorityQueue<STATE, double> open;
 
   // The closed set contains nodes that have already been visited and expanded.
   // Once a node goes into the closed set, it will never need to be considered
@@ -86,7 +86,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
     // so its priority f is equal to the heuristic h.
     // f = 0 + h;
     const double h = space->get_from_to_heuristic(start, goal);
-    open.push({start, h});
+    open.insert(start, h);
 
     // The start node backpointer points to itself.
     // This is optional but may help find bugs in backtracking.
@@ -99,7 +99,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
 
   while (!open.empty()) {
     // Grab the min-priority state and remove it from open.
-    const STATE curr_state = open.top().first;
+    const STATE curr_state = open.top();
     open.pop();
 
     // If you have expanded this state before, skip it.
@@ -149,7 +149,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
 
         // Push this successor onto the open queue.
         const double f = tentative_g + h;
-        open.push({succ, f});
+        open.insert(succ, f);
 
         // Remember that the best known route to succ is through curr_state.
         nodemap[succ].pred = curr_state;

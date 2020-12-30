@@ -21,19 +21,31 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
 
   std::vector<State2D> get_successors(const State2D& state) override {
     std::vector<State2D> succs;
-    if (state.y + 1 < h) succs.push_back({state.x, state.y + 1});
-    if (state.x + 1 < w) succs.push_back({state.x + 1, state.y});
-    if (state.x - 1 >= 0) succs.push_back({state.x - 1, state.y});
-    if (state.y - 1 >= 0) succs.push_back({state.x, state.y - 1});
+    if (state.y + 1 < h) {
+      succs.push_back({state.x, state.y + 1});
+    }
+    if (state.x + 1 < w) {
+      succs.push_back({state.x + 1, state.y});
+    }
+    if (state.x - 1 >= 0) {
+      succs.push_back({state.x - 1, state.y});
+    }
+    if (state.y - 1 >= 0) {
+      succs.push_back({state.x, state.y - 1});
+    }
 
-    if (state.x + 1 < w && state.y + 1 < h)
+    if (state.x + 1 < w && state.y + 1 < h) {
       succs.push_back({state.x + 1, state.y + 1});
-    if (state.x - 1 >= 0 && state.y + 1 < h)
+    }
+    if (state.x - 1 >= 0 && state.y + 1 < h) {
       succs.push_back({state.x - 1, state.y + 1});
-    if (state.x - 1 >= 0 && state.y - 1 >= 0)
+    }
+    if (state.x - 1 >= 0 && state.y - 1 >= 0) {
       succs.push_back({state.x - 1, state.y - 1});
-    if (state.x + 1 < w && state.y - 1 >= 0)
+    }
+    if (state.x + 1 < w && state.y - 1 >= 0) {
       succs.push_back({state.x + 1, state.y - 1});
+    }
 
     return succs;
   }
@@ -50,6 +62,10 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
   double get_from_to_heuristic(const State2D& from,
                                const State2D& to) override {
     return get_from_to_cost(from, to);
+  }
+
+  std::vector<std::pair<State2D, State2D>> get_changed_edges() override {
+    return {};
   }
 };
 
@@ -80,21 +96,18 @@ int main(int argc, char** argv) {
     fmt::print("\n");
   }
 
-  /*
   {
-      nanoplan::LPAStar<SearchSpace2D> planner(space2d);
-      planner.set_options(options);
+    nanoplan::LPAStar<SearchSpace2D> planner(space2d);
+    planner.set_options(options);
 
-      const auto plan0 = planner.plan(start, goal);
-      fmt::print(planner.full_report());
-      fmt::print("\n");
+    const auto plan0 = planner.plan(start, goal);
+    fmt::print(planner.full_report());
+    fmt::print("\n");
 
-      const auto plan1 = planner.replan( State2D {10,10} );
-
-      fmt::print(planner.full_report());
-      fmt::print("\n");
+    const auto plan1 = planner.replan(State2D{1, 1});
+    fmt::print(planner.full_report());
+    fmt::print("\n");
   }
-  */
 
   return 0;
 }
