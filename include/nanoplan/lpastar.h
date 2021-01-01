@@ -4,6 +4,7 @@
 #include <fmt/format.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -28,26 +29,31 @@ class LPAStar final : public Planner<SPACE> {
   std::vector<STATE> replan() override;
 
  private:
-  struct PairCompare {
-    bool operator()(const std::pair<double, double>& a,
-                    const std::pair<double, double>& b) const {
-      if (a.first > b.first) {
+  struct Key {
+    double first = 0.0;
+    double second = 0.0;
+
+    bool operator<(const Key& rhs) const {
+      if (first < rhs.first) {
         return true;
-      } else if (a.first == b.first) {
-        return a.second > b.second;
+      } else if (first == rhs.first) {
+        return second < rhs.second;
       }
       return false;
     }
+    bool operator==(const Key& rhs) const {
+      return first == rhs.first && second == rhs.second;
+    }
   };
-  PriorityQueue<STATE, std::pair<double, double>, PairCompare> pq;
+  PriorityQueueWithRemove<STATE, Key> pq;
   HashMap<STATE, double> gscores;
   HashMap<STATE, double> rscores;
   ska::flat_hash_set<STATE> closed;
 
   void initialize();
-  void compute_shortest_path();
+  std::vector<STATE> compute_shortest_path();
   void update_node(const STATE& state);
-  std::pair<double, double> calculate_key(const STATE& state);
+  Key calculate_key(const STATE& state);
   std::vector<STATE> backtrack();
 
   using Planner<SPACE>::space;
@@ -77,8 +83,7 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::plan(const STATE& from,
   summary.termination = Termination::TERMINATION_NOT_SET;
 
   initialize();
-  compute_shortest_path();
-  const auto path = backtrack();
+  const auto path = compute_shortest_path();
 
   summary.elapsed_usec += check_timer();
   summary.termination = Termination::SUCCESS;
@@ -90,13 +95,13 @@ template <typename SPACE>
 std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
   start_timer();
 
-  for (const auto& edge : space->get_changed_edges()) {
+  const auto changed_edges = space->get_changed_edges();
+  for (const auto& edge : changed_edges) {
     const auto& to = edge.second;
     update_node(to);
   }
 
-  compute_shortest_path();
-  const auto path = backtrack();
+  const auto path = compute_shortest_path();
 
   summary.elapsed_usec = check_timer();
   summary.termination = Termination::SUCCESS;
@@ -107,16 +112,15 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
 
 template <typename SPACE>
 void LPAStar<SPACE>::initialize() {
-  pq = PriorityQueue<STATE, std::pair<double, double>, PairCompare>();
-  gscores.put(goal, INF_DBL);
-  rscores.put(goal, INF_DBL);
+  pq = PriorityQueueWithRemove<STATE, Key>();
   gscores.put(start, INF_DBL);
   rscores.put(start, 0.0);
   pq.insert(start, calculate_key(start));
 }
 
 template <typename SPACE>
-void LPAStar<SPACE>::compute_shortest_path() {
+std::vector<typename SPACE::state_type>
+LPAStar<SPACE>::compute_shortest_path() {
   while (!pq.empty() && (pq.top_priority() < calculate_key(goal) ||
                          rscores.at(goal) != gscores.at(goal))) {
     const auto curr_state = pq.top();
@@ -133,6 +137,7 @@ void LPAStar<SPACE>::compute_shortest_path() {
       update_node(succ);
     }
   }
+  return backtrack();
 }
 
 template <typename SPACE>
@@ -154,10 +159,10 @@ void LPAStar<SPACE>::update_node(const STATE& state) {
 }
 
 template <typename SPACE>
-std::pair<double, double> LPAStar<SPACE>::calculate_key(const STATE& state) {
+LPAStar<SPACE>::Key LPAStar<SPACE>::calculate_key(const STATE& state) {
   double tmp = std::min(gscores.at(state), rscores.at(state));
   double h = space->get_from_to_heuristic(state, goal);
-  return std::make_pair(tmp + h, tmp);
+  return Key{tmp + h, tmp};
 }
 
 template <typename SPACE>
@@ -173,9 +178,6 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::backtrack() {
     {
       double min_cost = INF_DBL;
       for (const auto& p : preds) {
-        if (!gscores.contains(p)) {
-          continue;
-        }
         double new_cost = gscores.at(p) + space->get_from_to_cost(p, state);
         if (new_cost < min_cost) {
           min_cost = new_cost;
