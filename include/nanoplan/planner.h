@@ -47,7 +47,7 @@ class Planner {
   std::string full_report();
 
  protected:
-  std::shared_ptr<SPACE> space;
+  const std::shared_ptr<SPACE> space;
   STATE start;
   STATE goal;
 

@@ -27,17 +27,17 @@ typename std::enable_if<std::is_unsigned<T>::value, T>::type const rotl(
 namespace nanoplan {
 
 template <typename T>
-T xorshift(const T& n, int i) {
+inline T xorshift(const T& n, int i) {
   return n ^ (n >> i);
 }
 
-uint32_t distribute(const uint32_t& n) {
+inline uint32_t distribute(const uint32_t& n) {
   uint32_t p = 0x55555555ul;  // pattern of alternating 0 and 1
   uint32_t c = 3423571495ul;  // random uneven integer constant
   return c * xorshift(p * xorshift(n, 16), 16);
 }
 
-uint64_t hash(const uint64_t& n) {
+inline uint64_t hash(const uint64_t& n) {
   uint64_t p = 0x5555555555555555;       // pattern of alternating 0 and 1
   uint64_t c = 17316035218449499591ull;  // random uneven integer constant
   return c * xorshift(p * xorshift(n, 32), 32);
@@ -79,12 +79,6 @@ class HashMap {
   }
 
   bool contains(const KEY& key) const { return map.find(key) != map.end(); }
-
-  void print() const {
-    for (const auto& x : map) {
-      fmt::print("{},{} {}\n", x.first.x, x.first.y, x.second);
-    }
-  }
 
  private:
   ska::flat_hash_map<KEY, VAL> map;

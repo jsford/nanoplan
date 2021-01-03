@@ -76,6 +76,9 @@ std::string LPAStar<SPACE>::planner_name() const {
 template <typename SPACE>
 std::vector<typename SPACE::state_type> LPAStar<SPACE>::plan(const STATE& from,
                                                              const STATE& to) {
+  this->start = from;
+  this->goal = to;
+
   start_timer();
   summary.elapsed_usec = 0.0;
   summary.total_cost = 0.0;
@@ -94,11 +97,11 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::plan(const STATE& from,
 template <typename SPACE>
 std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
   start_timer();
+  summary.expansions = 0;
 
-  const auto changed_edges = space->get_changed_edges();
-  for (const auto& edge : changed_edges) {
-    const auto& to = edge.second;
-    update_node(to);
+  const auto& changed_states = space->get_changed_states();
+  for (const auto& s : changed_states) {
+    update_node(s);
   }
 
   const auto path = compute_shortest_path();
@@ -113,7 +116,6 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
 template <typename SPACE>
 void LPAStar<SPACE>::initialize() {
   pq = PriorityQueueWithRemove<STATE, Key>();
-  gscores.put(start, INF_DBL);
   rscores.put(start, 0.0);
   pq.insert(start, calculate_key(start));
 }
@@ -125,13 +127,19 @@ LPAStar<SPACE>::compute_shortest_path() {
                          rscores.at(goal) != gscores.at(goal))) {
     const auto curr_state = pq.top();
     pq.pop();
+
     summary.expansions++;
 
-    if (gscores.at(curr_state) > rscores.at(curr_state)) {
-      gscores.put(curr_state, rscores.at(curr_state));
-    } else {
+    const auto curr_rscore = rscores.at(curr_state);
+    const auto curr_gscore = gscores.at(curr_state);
+
+    if (curr_gscore > curr_rscore) {
+      gscores.put(curr_state, curr_rscore);
+    } else if (curr_gscore < curr_rscore) {
       gscores.put(curr_state, INF_DBL);
       update_node(curr_state);
+    } else {
+      fmt::print("ERROR: LPA* is expanding a consistent state.\n");
     }
     for (const auto& succ : space->get_successors(curr_state)) {
       update_node(succ);
@@ -143,25 +151,32 @@ LPAStar<SPACE>::compute_shortest_path() {
 template <typename SPACE>
 void LPAStar<SPACE>::update_node(const STATE& state) {
   if (state != start) {
-    rscores.put(state, INF_DBL);
-    for (const auto& pred : space->get_predecessors(state)) {
-      const double r =
-          std::min(rscores.at(state),
-                   gscores.at(pred) + space->get_from_to_cost(pred, state));
-      rscores.put(state, r);
+    // Compute the correct rscore for this state.
+    double new_rscore = INF_DBL;
+    {
+      const auto& preds = space->get_predecessors(state);
+      for (const auto& pred : preds) {
+        const double r =
+            gscores.at(pred) + space->get_from_to_cost(pred, state);
+        new_rscore = std::min(new_rscore, r);
+      }
     }
-  }
-  pq.remove(state);
+    rscores.put(state, new_rscore);
 
-  if (gscores.at(state) != rscores.at(state)) {
-    pq.insert(state, calculate_key(state));
+    if (gscores.at(state) != new_rscore) {
+      // NOTE(Jordan): These two ops could possibly be combined?
+      pq.remove(state);
+      pq.insert(state, calculate_key(state));
+    } else {
+      pq.remove(state);
+    }
   }
 }
 
 template <typename SPACE>
 LPAStar<SPACE>::Key LPAStar<SPACE>::calculate_key(const STATE& state) {
-  double tmp = std::min(gscores.at(state), rscores.at(state));
-  double h = space->get_from_to_heuristic(state, goal);
+  const double tmp = std::min(gscores.at(state), rscores.at(state));
+  const double h = space->get_from_to_heuristic(state, goal);
   return Key{tmp + h, tmp};
 }
 

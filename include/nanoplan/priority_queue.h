@@ -1,6 +1,8 @@
 #ifndef NANOPLAN_PRIORITY_QUEUE_H
 #define NANOPLAN_PRIORITY_QUEUE_H
 
+#include <unistd.h>  // remove this
+
 #include <algorithm>
 #include <functional>
 #include <queue>
@@ -55,8 +57,8 @@ class PriorityQueueWithRemove {
   struct HeapEntry;
 
  public:
-  VALUE top() { return vec.at(0).value; }
-  PRIORITY top_priority() { return vec.at(0).priority; }
+  VALUE top() { return vec[0].value; }
+  PRIORITY top_priority() { return vec[0].priority; }
 
   void pop() { remove(top()); }
 
@@ -89,12 +91,8 @@ class PriorityQueueWithRemove {
     VALUE value;
     PRIORITY priority;
 
-    bool operator<(const HeapEntry& rhs) {
-      return priority < rhs.priority;
-    }
-    bool operator==(const HeapEntry& rhs) {
-      return priority == rhs.priority;
-    }
+    bool operator<(const HeapEntry& rhs) { return priority < rhs.priority; }
+    bool operator==(const HeapEntry& rhs) { return priority == rhs.priority; }
     bool operator>(const HeapEntry& rhs) {
       return !operator<(rhs) && !operator==(rhs);
     }
@@ -128,12 +126,8 @@ class PriorityQueueWithRemove {
   static unsigned long parent(unsigned long i) {
     return std::floor((i - 1) / 2);
   }
-  static unsigned long left(unsigned long i) {
-    return 2 * i + 1;
-  }
-  static unsigned long right(unsigned long i) {
-    return 2 * i + 2;
-  }
+  static unsigned long left(unsigned long i) { return 2 * i + 1; }
+  static unsigned long right(unsigned long i) { return 2 * i + 2; }
 
  public:
   ska::flat_hash_map<VALUE, unsigned long> idx;

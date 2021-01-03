@@ -5,7 +5,7 @@ format:
 	clang-format -i -style=file ./include/nanoplan/*.h ./src/*.cpp
 
 benchmark: all
-	hyperfine ./nanoplan --warmup 2 --min-runs 10
+	hyperfine ./nanoplan --warmup 4 --min-runs 10
 
 clean:
 	rm nanoplan

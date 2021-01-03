@@ -32,11 +32,11 @@ class SearchSpace {
         "get_from_to_heuristic.");
   }
 
-  virtual std::vector<std::pair<STATE, STATE>> get_changed_edges() {
+  virtual std::vector<STATE> get_changed_states() {
     throw std::logic_error(
         "NANOPLAN ERROR [NOT IMPLEMENTED]: "
         "State space does not implement required function "
-        "get_changed_edges.");
+        "get_changed_states.");
   }
 };
 
