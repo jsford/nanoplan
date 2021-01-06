@@ -16,11 +16,10 @@ NANOPLAN_MAKE_STATE_HASHABLE(State2D, s.x, s.y);
 
 class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
  public:
-  static const int w = 1024;
-  static const int h = 1024;
+  static const int w = 4096;
+  static const int h = 4096;
   bool use_new_costs = false;
-  int new_cost_window = 10;
-  double new_cost_mult = 0.5;
+  double new_cost_mult = 0.1;
 
   std::vector<State2D> get_successors(const State2D& state) override {
     std::vector<State2D> succs;
@@ -59,7 +58,7 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
   }
 
   double get_from_to_cost(const State2D& from, const State2D& to) override {
-    if (use_new_costs && to.x < new_cost_window && to.y < new_cost_window) {
+    if (use_new_costs && to.x == 1 && to.y == 1) {
       return new_cost_mult * euclidean(from, to);
     }
     return euclidean(from, to);
@@ -80,13 +79,9 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
 
   std::vector<State2D> get_changed_states() override {
     std::vector<State2D> states;
-    for (int y = 0; y < h; ++y) {
-      for (int x = 0; x < w; ++x) {
-        if (y < new_cost_window && x < new_cost_window) {
-          states.push_back(State2D{x, y});
-        }
-      }
-    }
+
+    states.push_back(State2D{1, 1});
+
     fmt::print("Changed {} states.\n", states.size());
     return states;
   }
@@ -137,12 +132,11 @@ void test_lpastar(const State2D& start, const State2D& goal) {
   space2d->use_new_costs = true;
   const auto plan1 = planner.replan();
   fmt::print(planner.full_report());
-  fmt::print("\n");
 }
 
 int main(int argc, char** argv) {
-  State2D start{1023, 1023};
-  State2D goal{0, 0};
+  State2D start{0, 0};
+  State2D goal{4095, 4095};
 
   // test_dijkstra(start, goal);
   test_lpastar(start, goal);

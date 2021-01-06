@@ -5,14 +5,30 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cmath>
+#include <iostream>
 #include <memory>
+#include <thread>  // sleep_for, for testing only
 #include <vector>
 
 #include "ext/flat_hash_map.hpp"
 #include "planner.h"
 #include "priority_queue.h"
 #include "search_space.h"
+
+void tic(int mode = 0) {
+  static std::chrono::_V2::system_clock::time_point t_start;
+
+  if (mode == 0)
+    t_start = std::chrono::high_resolution_clock::now();
+  else {
+    auto t_end = std::chrono::high_resolution_clock::now();
+    std::cout << "Elapsed time is " << (t_end - t_start).count() * 1E-6
+              << " ms\n";
+  }
+}
+void toc() { tic(1); }
 
 namespace nanoplan {
 
@@ -34,15 +50,25 @@ class LPAStar final : public Planner<SPACE> {
     double second = 0.0;
 
     bool operator<(const Key& rhs) const {
-      if (first < rhs.first) {
+      const double eps = 1e-7;
+      if (first < rhs.first+eps) {
         return true;
-      } else if (first == rhs.first) {
-        return second < rhs.second;
+      } else if (std::abs(first - rhs.first) < eps) {
+        return second < rhs.second + eps;
       }
       return false;
     }
     bool operator==(const Key& rhs) const {
       return first == rhs.first && second == rhs.second;
+    }
+    bool operator>(const Key& rhs) const {
+      return !operator<(rhs) && !operator==(rhs);
+    }
+    bool operator>=(const Key& rhs) const {
+      return operator>(rhs) || operator==(rhs);
+    }
+    bool operator<=(const Key& rhs) const {
+      return operator<(rhs) || operator==(rhs);
     }
   };
   PriorityQueueWithRemove<STATE, Key> pq;
@@ -123,8 +149,8 @@ void LPAStar<SPACE>::initialize() {
 template <typename SPACE>
 std::vector<typename SPACE::state_type>
 LPAStar<SPACE>::compute_shortest_path() {
-  while (!pq.empty() && (pq.top_priority() < calculate_key(goal) ||
-                         rscores.at(goal) != gscores.at(goal))) {
+  while (pq.top_priority() < calculate_key(goal) ||
+          rscores.at(goal) != gscores.at(goal)) {
     const auto curr_state = pq.top();
     pq.pop();
 

@@ -80,6 +80,16 @@ class HashMap {
 
   bool contains(const KEY& key) const { return map.find(key) != map.end(); }
 
+  std::size_t size() const { return map.size(); }
+
+  void print() const {
+    for (const auto& p : map) {
+      const auto& k = p.first;
+      const auto& v = p.second;
+      fmt::print("({}, {}) {}\n", k.x, k.y, v);
+    }
+  }
+
  private:
   ska::flat_hash_map<KEY, VAL> map;
 };
