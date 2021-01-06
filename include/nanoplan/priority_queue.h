@@ -62,7 +62,18 @@ class PriorityQueueWithRemove {
   VALUE top() { return vec[1].value; }
   PRIORITY top_priority() { return vec[1].priority; }
 
-  void pop() { remove(top()); }
+  void pop() {
+    // Remove the top from the index.
+    idx.erase(vec[1].value);
+    // Overwrite it with the last value in the queue.
+    vec[1] = std::move(vec[vec.size() - 1]);
+    // Fix up the index for the newly placed value.
+    idx[vec[1].value] = 1;
+    // Resize the heap smaller.
+    vec.pop_back();
+    // Fix the heap.
+    heap_down(1);
+  }
 
   void remove(const VALUE& v) {
     // Quit if you can't find the value to remove.
@@ -95,25 +106,6 @@ class PriorityQueueWithRemove {
   bool empty() const { return vec.size() == 1; }
   std::size_t size() const { return vec.size() - 1; }
 
-  void print() const {
-    for (int i = 1; i < vec.size(); ++i) {
-      if (!((i != 1) && (i & (i - 1)))) {
-        fmt::print("------------------\n");
-      }
-      auto s = vec[i].value;
-      auto p = vec[i].priority;
-      fmt::print("{}, {} <{}, {}>\n", s.x, s.y, p.first, p.second);
-    }
-  }
-
-  bool is_heap(unsigned long i = 1) {
-    if (right(i) >= vec.size()) {
-      return true;
-    }
-    return vec[i].priority <= vec[right(i)].priority &&
-           vec[i].priority <= vec[left(i)].priority && is_heap(right(i)) &&
-           is_heap(left(i));
-  }
 
  private:
   struct HeapEntry {
@@ -146,8 +138,6 @@ class PriorityQueueWithRemove {
   }
 
   void heap_down(unsigned long i) {
-    const auto elmt = vec[i];
-
     while (true) {
       const auto l = left(i);
       const auto r = right(i);
@@ -168,9 +158,6 @@ class PriorityQueueWithRemove {
       if (vec[i] < vec[child]) {
         break;  // Quit because the smallest child is not smaller.
       } else {
-        // Move the i-th element down and the child up.
-        // NOTE(Jordan): This swap can be optimized to a bubble-down,
-        // but the idx bookkeeping is a little tricky.
         swap(vec[i], vec[child]);
         i = child;
       }

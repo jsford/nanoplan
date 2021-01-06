@@ -175,7 +175,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
     summary.total_cost = nodemap[goal].gscore;
   } else if (summary.termination == Termination::TIMEOUT) {
     // If the search timed out, return an empty path with cost 0.
-    summary.total_cost = 0.0;
+    summary.total_cost = INF_DBL;
   } else {
     // If the goal was not reachable, return an empty path with cost 0.
     summary.termination = Termination::UNREACHABLE;

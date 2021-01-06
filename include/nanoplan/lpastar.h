@@ -4,31 +4,13 @@
 #include <fmt/format.h>
 
 #include <algorithm>
-#include <cassert>
-#include <chrono>
-#include <cmath>
-#include <iostream>
 #include <memory>
-#include <thread>  // sleep_for, for testing only
 #include <vector>
 
 #include "ext/flat_hash_map.hpp"
 #include "planner.h"
 #include "priority_queue.h"
 #include "search_space.h"
-
-void tic(int mode = 0) {
-  static std::chrono::_V2::system_clock::time_point t_start;
-
-  if (mode == 0)
-    t_start = std::chrono::high_resolution_clock::now();
-  else {
-    auto t_end = std::chrono::high_resolution_clock::now();
-    std::cout << "Elapsed time is " << (t_end - t_start).count() * 1E-6
-              << " ms\n";
-  }
-}
-void toc() { tic(1); }
 
 namespace nanoplan {
 
@@ -50,11 +32,10 @@ class LPAStar final : public Planner<SPACE> {
     double second = 0.0;
 
     bool operator<(const Key& rhs) const {
-      const double eps = 1e-7;
-      if (first < rhs.first+eps) {
+      if (first < rhs.first + NANOPLAN_EPSILON) {
         return true;
-      } else if (std::abs(first - rhs.first) < eps) {
-        return second < rhs.second + eps;
+      } else if (std::abs(first - rhs.first) < NANOPLAN_EPSILON) {
+        return second < rhs.second + NANOPLAN_EPSILON;
       }
       return false;
     }
@@ -115,7 +96,6 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::plan(const STATE& from,
   const auto path = compute_shortest_path();
 
   summary.elapsed_usec += check_timer();
-  summary.termination = Termination::SUCCESS;
   summary.total_cost = gscores.at(goal);
   return path;
 }
@@ -133,7 +113,6 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
   const auto path = compute_shortest_path();
 
   summary.elapsed_usec = check_timer();
-  summary.termination = Termination::SUCCESS;
   summary.total_cost = gscores.at(goal);
 
   return path;
@@ -150,7 +129,7 @@ template <typename SPACE>
 std::vector<typename SPACE::state_type>
 LPAStar<SPACE>::compute_shortest_path() {
   while (pq.top_priority() < calculate_key(goal) ||
-          rscores.at(goal) != gscores.at(goal)) {
+         rscores.at(goal) != gscores.at(goal)) {
     const auto curr_state = pq.top();
     pq.pop();
 
@@ -170,8 +149,20 @@ LPAStar<SPACE>::compute_shortest_path() {
     for (const auto& succ : space->get_successors(curr_state)) {
       update_node(succ);
     }
+
+    if (options.timeout_ms > 0.0 &&
+        check_timer() >= 1000 * options.timeout_ms) {
+      summary.termination = Termination::TIMEOUT;
+      break;
+    }
   }
-  return backtrack();
+
+  if (summary.termination != Termination::TIMEOUT) {
+    summary.termination = Termination::SUCCESS;
+    return backtrack();
+  } else {
+    return {};
+  }
 }
 
 template <typename SPACE>
@@ -189,9 +180,7 @@ void LPAStar<SPACE>::update_node(const STATE& state) {
     }
     rscores.put(state, new_rscore);
 
-    if (gscores.at(state) != new_rscore) {
-      // NOTE(Jordan): These two ops could possibly be combined?
-      pq.remove(state);
+    if (std::abs(gscores.at(state) - new_rscore) > NANOPLAN_EPSILON) {
       pq.insert(state, calculate_key(state));
     } else {
       pq.remove(state);

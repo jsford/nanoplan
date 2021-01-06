@@ -58,7 +58,7 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
   }
 
   double get_from_to_cost(const State2D& from, const State2D& to) override {
-    if (use_new_costs && to.x == 1 && to.y == 1) {
+    if (use_new_costs && to.x == 4000 && to.y == 4000) {
       return new_cost_mult * euclidean(from, to);
     }
     return euclidean(from, to);
@@ -80,7 +80,7 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
   std::vector<State2D> get_changed_states() override {
     std::vector<State2D> states;
 
-    states.push_back(State2D{1, 1});
+    states.push_back(State2D{4000, 4000});
 
     fmt::print("Changed {} states.\n", states.size());
     return states;
