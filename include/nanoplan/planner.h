@@ -46,6 +46,8 @@ class Planner {
   virtual std::string planner_name() const = 0;
   std::string full_report();
 
+  Summary get_summary() const;
+
  protected:
   const std::shared_ptr<SPACE> space;
   STATE start;
@@ -78,6 +80,11 @@ Planner<SPACE>::Planner(std::shared_ptr<SPACE> search_space)
 template <typename SPACE>
 std::vector<typename SPACE::state_type> Planner<SPACE>::replan() {
   return plan(start, goal);
+}
+
+template <typename SPACE>
+Summary Planner<SPACE>::get_summary() const {
+  return summary;
 }
 
 template <typename SPACE>

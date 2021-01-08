@@ -17,6 +17,10 @@ endif()
 if( ${BUILD_TESTS} )
   find_package(Catch2 REQUIRED)
   find_package(fmt REQUIRED)
-  add_executable(test_${PROJECT_NAME} test/test.cpp)
+  add_executable(test_${PROJECT_NAME}
+    test/test_main.cpp
+    test/test_queues.cpp
+    test/test_planners.cpp
+  )
   target_link_libraries(test_${PROJECT_NAME} nanoplan Catch2 fmt::fmt)
 endif()

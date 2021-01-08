@@ -1,7 +1,8 @@
 #ifndef NANOPLAN_PRIORITY_QUEUE_H
 #define NANOPLAN_PRIORITY_QUEUE_H
 
-#include <unistd.h>  // remove this
+#include <fmt/format.h>  // remove this
+#include <unistd.h>      // remove this
 
 #include <algorithm>
 #include <functional>
@@ -51,8 +52,7 @@ class PriorityQueue {
   };
 };
 
-template <class VALUE, class PRIORITY = double,
-          class COMPARE = std::less<PRIORITY>>
+template <class VALUE, class PRIORITY, class COMPARE = std::less<PRIORITY>>
 class PriorityQueueWithRemove {
   struct HeapEntry;
 
@@ -62,18 +62,7 @@ class PriorityQueueWithRemove {
   VALUE top() { return vec[1].value; }
   PRIORITY top_priority() { return vec[1].priority; }
 
-  void pop() {
-    // Remove the top from the index.
-    idx.erase(vec[1].value);
-    // Overwrite it with the last value in the queue.
-    vec[1] = std::move(vec[vec.size() - 1]);
-    // Fix up the index for the newly placed value.
-    idx[vec[1].value] = 1;
-    // Resize the heap smaller.
-    vec.pop_back();
-    // Fix the heap.
-    heap_down(1);
-  }
+  void pop() { remove(top()); }
 
   void remove(const VALUE& v) {
     // Quit if you can't find the value to remove.
@@ -84,12 +73,12 @@ class PriorityQueueWithRemove {
     // Get the index of the value to remove.
     const auto i = it->second;
     // Overwrite it with the last value in the queue.
-    vec[i] = std::move(vec[vec.size() - 1]);
-    // Fix up the index for the newly placed value.
-    idx[vec[i].value] = i;
+    vec[i] = vec[vec.size() - 1];
     // Remove all traces of the old value.
     vec.pop_back();
     idx.erase(v);
+    // Fix up the index for the newly placed value.
+    idx[vec[i].value] = i;
     // Fix the heap.
     heap_down(i);
   }
@@ -105,6 +94,12 @@ class PriorityQueueWithRemove {
 
   bool empty() const { return vec.size() == 1; }
   std::size_t size() const { return vec.size() - 1; }
+
+  void print() const {
+    for (const auto& x : vec) {
+      fmt::print("{} : {}\n", x.value, x.priority);
+    }
+  }
 
  private:
   struct HeapEntry {
