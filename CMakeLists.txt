@@ -5,6 +5,8 @@ project(nanoplan)
 option(BUILD_DEMO "Build the planning demo program." ON)
 option(BUILD_TESTS "Build unit tests." ON)
 
+set(CMAKE_CXX_STANDARD 11)
+
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

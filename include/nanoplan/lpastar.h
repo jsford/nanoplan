@@ -191,9 +191,10 @@ void LPAStar<SPACE>::update_node(const STATE& state) {
 
 template <typename SPACE>
 typename LPAStar<SPACE>::Key LPAStar<SPACE>::calculate_key(const STATE& state) {
-  const double tmp = std::min(gscores.at(state), rscores.at(state));
-  const double h = space->get_from_to_heuristic(state, goal);
-  return Key{tmp + h, tmp};
+  Key k;
+  k.second = std::min(gscores.at(state), rscores.at(state));
+  k.first = k.second + space->get_from_to_heuristic(state, goal);
+  return k;
 }
 
 template <typename SPACE>
