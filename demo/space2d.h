@@ -1,10 +1,9 @@
-#include <fmt/format.h>
+#ifndef SPACE2D_H_
+#define SPACE2D_H_
 
-#include <climits>
-#include <cmath>
+#include <nanoplan/nanoplan.h>
+
 #include <vector>
-
-#include "nanoplan/nanoplan.h"
 
 struct State2D {
   int x;
@@ -19,7 +18,7 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
   static const int w = 4096;
   static const int h = 4096;
   bool use_new_costs = false;
-  double new_cost_mult = 0.1;
+  double new_cost_mult = nanoplan::INF_DBL;
 
   std::vector<State2D> get_successors(const State2D& state) override {
     std::vector<State2D> succs;
@@ -73,74 +72,12 @@ class SearchSpace2D final : public nanoplan::SearchSpace<State2D> {
     return std::sqrt((to.x - from.x) * (to.x - from.x) +
                      (to.y - from.y) * (to.y - from.y));
   }
-  double manhattan(const State2D& from, const State2D& to) const {
-    return std::abs(to.x - from.x) + std::abs(to.y - from.y);
-  }
 
   std::vector<State2D> get_changed_states() override {
     std::vector<State2D> states;
-
     states.push_back(State2D{4000, 4000});
-
-    fmt::print("Changed {} states.\n", states.size());
     return states;
   }
 };
 
-void test_dijkstra(const State2D& start, const State2D& goal) {
-  std::shared_ptr<SearchSpace2D> space2d = std::make_shared<SearchSpace2D>();
-
-  nanoplan::Options options;
-  options.timeout_ms = 1000.0;
-
-  nanoplan::Dijkstra<SearchSpace2D> planner(space2d);
-  planner.set_options(options);
-
-  const auto plan = planner.plan(start, goal);
-  fmt::print(planner.full_report());
-  fmt::print("\n");
-}
-
-void test_astar(const State2D& start, const State2D& goal) {
-  std::shared_ptr<SearchSpace2D> space2d = std::make_shared<SearchSpace2D>();
-
-  nanoplan::Options options;
-  options.timeout_ms = 1000.0;
-
-  nanoplan::AStar<SearchSpace2D> planner(space2d);
-  planner.set_options(options);
-
-  space2d->use_new_costs = true;
-  const auto plan = planner.plan(start, goal);
-  fmt::print(planner.full_report());
-  fmt::print("\n");
-}
-
-void test_lpastar(const State2D& start, const State2D& goal) {
-  std::shared_ptr<SearchSpace2D> space2d = std::make_shared<SearchSpace2D>();
-
-  nanoplan::Options options;
-  options.timeout_ms = 1000.0;
-
-  nanoplan::LPAStar<SearchSpace2D> planner(space2d);
-  planner.set_options(options);
-
-  const auto plan0 = planner.plan(start, goal);
-  fmt::print(planner.full_report());
-  fmt::print("\n");
-
-  space2d->use_new_costs = true;
-  const auto plan1 = planner.replan();
-  fmt::print(planner.full_report());
-}
-
-int main(int argc, char** argv) {
-  State2D start{0, 0};
-  State2D goal{4095, 4095};
-
-  // test_dijkstra(start, goal);
-  test_lpastar(start, goal);
-  test_astar(start, goal);
-
-  return 0;
-}
+#endif  // SPACE2D_H_

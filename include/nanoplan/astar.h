@@ -1,8 +1,6 @@
 #ifndef NANOPLAN_ASTAR_H
 #define NANOPLAN_ASTAR_H
 
-#include <fmt/format.h>
-
 #include <algorithm>
 #include <memory>
 #include <vector>

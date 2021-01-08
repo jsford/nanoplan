@@ -113,10 +113,10 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
     summary.total_cost = nodemap[goal].gscore;
     summary.termination = Termination::SUCCESS;
   } else if (summary.termination == Termination::TIMEOUT) {
-    summary.total_cost = 0.0;
+    summary.total_cost = INF_DBL;
   } else {
     summary.termination = Termination::UNREACHABLE;
-    summary.total_cost = 0.0;
+    summary.total_cost = INF_DBL;
   }
 
   summary.elapsed_usec = check_timer();

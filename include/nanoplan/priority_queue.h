@@ -96,7 +96,7 @@ class PriorityQueueWithRemove {
 
   void insert(const VALUE& v, const PRIORITY& p) {
     remove(v);
-    vec.emplace_back(v, p);
+    vec.push_back(HeapEntry{v, p});
     idx[v] = vec.size() - 1;
     heap_up(vec.size() - 1);
   }
@@ -105,7 +105,6 @@ class PriorityQueueWithRemove {
 
   bool empty() const { return vec.size() == 1; }
   std::size_t size() const { return vec.size() - 1; }
-
 
  private:
   struct HeapEntry {

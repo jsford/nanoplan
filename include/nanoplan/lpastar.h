@@ -1,9 +1,8 @@
 #ifndef NANOPLAN_LPASTAR_H
 #define NANOPLAN_LPASTAR_H
 
-#include <fmt/format.h>
-
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -144,7 +143,9 @@ LPAStar<SPACE>::compute_shortest_path() {
       gscores.put(curr_state, INF_DBL);
       update_node(curr_state);
     } else {
-      fmt::print("ERROR: LPA* is expanding a consistent state.\n");
+      std::cout << "NANOPLAN ERROR: LPA* is expanding a consistent state."
+                << std::endl;
+      ;
     }
     for (const auto& succ : space->get_successors(curr_state)) {
       update_node(succ);
@@ -167,7 +168,7 @@ LPAStar<SPACE>::compute_shortest_path() {
 
 template <typename SPACE>
 void LPAStar<SPACE>::update_node(const STATE& state) {
-  if (state != start) {
+  if (!(state == start)) {
     // Compute the correct rscore for this state.
     double new_rscore = INF_DBL;
     {
@@ -189,7 +190,7 @@ void LPAStar<SPACE>::update_node(const STATE& state) {
 }
 
 template <typename SPACE>
-LPAStar<SPACE>::Key LPAStar<SPACE>::calculate_key(const STATE& state) {
+typename LPAStar<SPACE>::Key LPAStar<SPACE>::calculate_key(const STATE& state) {
   const double tmp = std::min(gscores.at(state), rscores.at(state));
   const double h = space->get_from_to_heuristic(state, goal);
   return Key{tmp + h, tmp};
@@ -200,7 +201,7 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::backtrack() {
   std::vector<STATE> path;
 
   STATE state = goal;
-  while (state != start) {
+  while (!(state == start)) {
     const auto& preds = space->get_predecessors(state);
 
     // Find the cheapest predecessor to this state.

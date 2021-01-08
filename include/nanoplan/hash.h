@@ -1,7 +1,6 @@
 #ifndef NANOPLAN_HASH_H
 #define NANOPLAN_HASH_H
 
-#include <bit>
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -22,6 +21,8 @@ typename std::enable_if<std::is_unsigned<T>::value, T>::type const rotl(
                       // rotation, also c++20 now gives us rotl directly
 }
 }  // namespace std
+#else
+#include <bit>
 #endif
 
 namespace nanoplan {
@@ -81,14 +82,6 @@ class HashMap {
   bool contains(const KEY& key) const { return map.find(key) != map.end(); }
 
   std::size_t size() const { return map.size(); }
-
-  void print() const {
-    for (const auto& p : map) {
-      const auto& k = p.first;
-      const auto& v = p.second;
-      fmt::print("({}, {}) {}\n", k.x, k.y, v);
-    }
-  }
 
  private:
   ska::flat_hash_map<KEY, VAL> map;
