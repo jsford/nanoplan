@@ -15,4 +15,4 @@
 ## Acknowledgements
 Thank you to Carnegie Mellon's [Search Based Planning Lab](http://sbpl.net/) and Professor Maxim Likhachev for inventing and publishing many of the algorithms implemented in nanoplan.
 
-Thank you to the artist who designed the original "Robot Thinker" on which the nanoplan logo is based. If you know the artist, please email [jsford@andrew.cmu.edu](mailto:jsford@andrew.cmu.edu) to improve this attribution.
+The nanoplan logo is based on "Robot thinker", original art licensed from [stduiostoks](http://www.studioks.ru/).
