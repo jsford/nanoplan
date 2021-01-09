@@ -47,6 +47,8 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
     const typename SPACE::state_type& goal) {
   using STATE = typename SPACE::state_type;
 
+  summary.termination = Termination::TERMINATION_NOT_SET;
+
   // Time the search for debug and optimization purposes.
   start_timer();
 
@@ -95,7 +97,11 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
     nodemap[start].gscore = 0.0;
   }
 
-  while (!open.empty()) {
+  while (true) {
+    if( open.empty() ) {
+      summary.termination = Termination::UNREACHABLE;
+      break;
+    }
     // Grab the min-priority state and remove it from open.
     const STATE curr_state = open.top();
     open.pop();
@@ -161,6 +167,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
 
   std::vector<STATE> path;
   if (summary.termination == Termination::SUCCESS) {
+
     // If the search succeeded, backtrack to find the least-cost path.
     STATE s = goal;
     while (!(s == start)) {
@@ -174,10 +181,13 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
   } else if (summary.termination == Termination::TIMEOUT) {
     // If the search timed out, return an empty path with cost 0.
     summary.total_cost = INF_DBL;
+  } else if (summary.termination == Termination::TERMINATION_NOT_SET) {
+    // Don't do anything, I guess.    
+    fmt::print("HEY! WHAT THE FUCK!\n");
   } else {
     // If the goal was not reachable, return an empty path with cost 0.
     summary.termination = Termination::UNREACHABLE;
-    summary.total_cost = 0.0;
+    summary.total_cost = INF_DBL;
   }
 
   // Record the search duration.

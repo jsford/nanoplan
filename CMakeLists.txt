@@ -12,7 +12,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
 
 if( ${BUILD_DEMO} )
   find_package(fmt REQUIRED)
-  add_executable(demo_${PROJECT_NAME} demo/main.cpp)
+  add_executable(demo_${PROJECT_NAME} demo/demo.cpp)
   target_link_libraries(demo_${PROJECT_NAME} nanoplan fmt::fmt)
 endif()
 

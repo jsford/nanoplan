@@ -20,7 +20,7 @@ enum class Termination {
 };
 
 struct Options {
-  double timeout_ms = 0.0;
+  double timeout_ms = -1.0;
 };
 
 struct Summary {

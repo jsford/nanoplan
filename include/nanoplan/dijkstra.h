@@ -47,6 +47,8 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
   start_timer();
   using STATE = typename SPACE::state_type;
 
+  summary.termination = Termination::TERMINATION_NOT_SET;
+
   this->start = start;
   this->goal = goal;
 
