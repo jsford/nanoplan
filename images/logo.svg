@@ -11,12 +11,12 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
-   sodipodi:docname="thinker.svg"
+   sodipodi:docname="logo.svg"
    id="svg8"
    version="1.1"
-   viewBox="0 0 213.50481 103.48253"
+   viewBox="0 0 364.53013 103.48253"
    height="103.48253mm"
-   width="213.50481mm">
+   width="364.53012mm">
   <defs
      id="defs2">
     <inkscape:path-effect
@@ -988,9 +988,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4142136"
-     inkscape:cx="580.19658"
-     inkscape:cy="168.71445"
+     inkscape:zoom="0.7071068"
+     inkscape:cx="505.51809"
+     inkscape:cy="237.78215"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -1987,14 +1987,25 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:28.57500076px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="150.21822"
-       y="190.84552"
+       x="155.08252"
+       y="196.45818"
        id="text1040"><tspan
          sodipodi:role="line"
          id="tspan1038"
-         x="150.21822"
-         y="190.84552"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.57500076px;font-family:'Latin Modern Mono Light';-inkscape-font-specification:'Latin Modern Mono Light, ';stroke-width:0.26458332">nanoplan</tspan></text>
+         x="155.08252"
+         y="196.45818"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:63.5px;font-family:'Latin Modern Mono Light';-inkscape-font-specification:'Latin Modern Mono Light, ';stroke-width:0.26458332">nanoplan</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="193.61845"
+       y="229.19092"
+       id="text237"><tspan
+         sodipodi:role="line"
+         id="tspan235"
+         x="193.61845"
+         y="229.19092"
+         style="stroke-width:0.26458332">h</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"
