@@ -4,7 +4,8 @@
 
 ---
 
-An easy-to-use C++ library for efficient graph-search based robot planning.
+**nanoplan** is a header-only C++11 library for search-based robot planning. The primary design goals are correctness, ease-of-use, and efficiency (in that order). 
+
 
 <p align="center" width="100%">
     <img width="60%" src="images/demo.gif"> 
