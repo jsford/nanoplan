@@ -2,6 +2,7 @@
 #define NANOPLAN_LPASTAR_H
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -27,16 +28,17 @@ class LPAStar final : public Planner<SPACE> {
 
  private:
   struct Key {
-    double first = 0.0;
-    double second = 0.0;
+    Cost first = 0.0;
+    Cost second = 0.0;
 
     bool operator<(const Key& rhs) const {
-      if (first < rhs.first + NANOPLAN_EPSILON) {
+      if (first < rhs.first) {
         return true;
-      } else if (std::abs(first - rhs.first) < NANOPLAN_EPSILON) {
-        return second < rhs.second + NANOPLAN_EPSILON;
+      } else if (first == rhs.first) {
+        return second < rhs.second;
+      } else {
+        return false;
       }
-      return false;
     }
     bool operator==(const Key& rhs) const {
       return first == rhs.first && second == rhs.second;
@@ -52,8 +54,8 @@ class LPAStar final : public Planner<SPACE> {
     }
   };
   PriorityQueueWithRemove<STATE, Key> pq;
-  HashMap<STATE, double> gscores;
-  HashMap<STATE, double> rscores;
+  HashMap<STATE, Cost> gscores;
+  HashMap<STATE, Cost> rscores;
   ska::flat_hash_set<STATE> closed;
 
   void initialize();
@@ -127,8 +129,20 @@ void LPAStar<SPACE>::initialize() {
 template <typename SPACE>
 std::vector<typename SPACE::state_type>
 LPAStar<SPACE>::compute_shortest_path() {
-  while (pq.top_priority() < calculate_key(goal) ||
-         rscores.at(goal) != gscores.at(goal)) {
+  while (true) {
+    if (rscores.at(goal) == gscores.at(goal) &&
+        gscores.at(goal) < Cost::max()) {
+      if (pq.empty() || pq.top_priority() >= calculate_key(goal)) {
+        summary.termination = Termination::SUCCESS;
+        break;
+      }
+    }
+
+    if (pq.empty()) {
+      summary.termination = Termination::UNREACHABLE;
+      break;
+    }
+
     const auto curr_state = pq.top();
     pq.pop();
 
@@ -140,13 +154,13 @@ LPAStar<SPACE>::compute_shortest_path() {
     if (curr_gscore > curr_rscore) {
       gscores.put(curr_state, curr_rscore);
     } else if (curr_gscore < curr_rscore) {
-      gscores.put(curr_state, INF_DBL);
+      gscores.put(curr_state, Cost::max());
       update_node(curr_state);
     } else {
-      std::cout << "NANOPLAN ERROR: LPA* is expanding a consistent state."
-                << std::endl;
-      ;
+      const auto msg = "NANOPLAN ERROR: LPA* is expanding a consistent state.";
+      throw std::runtime_error(msg);
     }
+
     for (const auto& succ : space->get_successors(curr_state)) {
       update_node(succ);
     }
@@ -158,7 +172,7 @@ LPAStar<SPACE>::compute_shortest_path() {
     }
   }
 
-  if (summary.termination != Termination::TIMEOUT) {
+  if (summary.termination == Termination::SUCCESS) {
     summary.termination = Termination::SUCCESS;
     return backtrack();
   } else {
@@ -169,22 +183,16 @@ LPAStar<SPACE>::compute_shortest_path() {
 template <typename SPACE>
 void LPAStar<SPACE>::update_node(const STATE& state) {
   if (!(state == start)) {
-    // Compute the correct rscore for this state.
-    double new_rscore = INF_DBL;
-    {
-      const auto& preds = space->get_predecessors(state);
-      for (const auto& pred : preds) {
-        const double r =
-            gscores.at(pred) + space->get_from_to_cost(pred, state);
-        new_rscore = std::min(new_rscore, r);
-      }
+    Cost new_rscore = Cost::max();
+    for (const auto& pred : space->get_predecessors(state)) {
+      const Cost r = gscores.at(pred) + space->get_from_to_cost(pred, state);
+      new_rscore = std::min(new_rscore, r);
     }
     rscores.put(state, new_rscore);
 
-    if (std::abs(gscores.at(state) - new_rscore) > NANOPLAN_EPSILON) {
+    pq.remove(state);  // remove if present.
+    if (gscores.at(state) != rscores.at(state)) {
       pq.insert(state, calculate_key(state));
-    } else {
-      pq.remove(state);
     }
   }
 }
@@ -194,26 +202,39 @@ typename LPAStar<SPACE>::Key LPAStar<SPACE>::calculate_key(const STATE& state) {
   Key k;
   k.second = std::min(gscores.at(state), rscores.at(state));
   k.first = k.second + space->get_from_to_heuristic(state, goal);
+  assert(k.second >= 0 && k.first >= 0);
   return k;
 }
 
 template <typename SPACE>
 std::vector<typename SPACE::state_type> LPAStar<SPACE>::backtrack() {
   std::vector<STATE> path;
+  pq.print();
 
+  int i = 0;
   STATE state = goal;
   while (!(state == start)) {
     const auto& preds = space->get_predecessors(state);
+    if (i++ > 500) {
+      fmt::print("BACKTRACKING IS STUCK!\n");
+      summary.termination = Termination::UNREACHABLE;
+      break;
+    }
+
+    if (preds.empty()) {
+      fmt::print("NO MORE PREDS FROM {}, {}\n", state.x, state.y);
+      break;
+    }
 
     // Find the cheapest predecessor to this state.
     STATE best_pred = preds.at(0);
     {
-      double min_cost = INF_DBL;
-      for (const auto& p : preds) {
-        double new_cost = gscores.at(p) + space->get_from_to_cost(p, state);
+      Cost min_cost = Cost::max();
+      for (const auto& pred : preds) {
+        Cost new_cost = gscores.at(pred) + space->get_from_to_cost(pred, state);
         if (new_cost < min_cost) {
           min_cost = new_cost;
-          best_pred = p;
+          best_pred = pred;
         }
       }
     }

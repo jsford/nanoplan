@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "cost.h"
 #include "search_space.h"
 
 namespace nanoplan {
@@ -25,7 +26,7 @@ struct Options {
 
 struct Summary {
   double elapsed_usec = 0.0;
-  double total_cost = 0.0;
+  Cost total_cost = Cost(0);
   unsigned long long expansions = 0;
   Termination termination = Termination::TERMINATION_NOT_SET;
 };

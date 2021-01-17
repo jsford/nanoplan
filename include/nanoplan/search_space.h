@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#include "cost.h"
+
 namespace nanoplan {
 
 template <typename STATE>
@@ -23,9 +25,9 @@ class SearchSpace {
         "get_predecessors.");
   }
 
-  virtual double get_from_to_cost(const STATE& from, const STATE& to) = 0;
+  virtual Cost get_from_to_cost(const STATE& from, const STATE& to) = 0;
 
-  virtual double get_from_to_heuristic(const STATE& from, const STATE& to) {
+  virtual Cost get_from_to_heuristic(const STATE& from, const STATE& to) {
     throw std::logic_error(
         "NANOPLAN ERROR [NOT IMPLEMENTED]: "
         "State space does not implement required function "

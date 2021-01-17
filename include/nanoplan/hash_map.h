@@ -13,7 +13,7 @@ class HashMap {
 
   VAL at(const KEY& key) {
     if (map.find(key) == map.end()) {
-      return std::numeric_limits<VAL>::infinity();
+      return Cost::max();
     }
     return map[key];
   }
@@ -26,4 +26,5 @@ class HashMap {
   ska::flat_hash_map<KEY, VAL> map;
 };
 
+}  // namespace nanoplan
 #endif  // NANOPLAN_HASH_H

@@ -54,10 +54,10 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
 
   struct NodeData {
     STATE pred;
-    double gscore;
+    Cost gscore;
   };
 
-  PriorityQueue<STATE, double> open;
+  PriorityQueue<STATE, Cost> open;
   ska::flat_hash_set<STATE> closed;
   ska::flat_hash_map<STATE, NodeData> nodemap;
 
@@ -90,8 +90,8 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
 
     const auto curr_gscore = nodemap[curr_state].gscore;
     for (const auto& succ : succs) {
-      const double succ_cost = space->get_from_to_cost(curr_state, succ);
-      const double tentative_g = curr_gscore + succ_cost;
+      const Cost succ_cost = space->get_from_to_cost(curr_state, succ);
+      const Cost tentative_g = curr_gscore + succ_cost;
 
       if (nodemap.find(succ) == nodemap.end() ||
           tentative_g < nodemap.at(succ).gscore) {
@@ -103,7 +103,8 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
   }
 
   std::vector<STATE> path;
-  if (summary.termination == Termination::SUCCESS) {
+  if (summary.termination == Termination::SUCCESS &&
+      nodemap[goal].gscore < Cost::max()) {
     STATE s = goal;
     while (!(s == start)) {
       path.push_back(s);
@@ -115,10 +116,10 @@ std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
     summary.total_cost = nodemap[goal].gscore;
     summary.termination = Termination::SUCCESS;
   } else if (summary.termination == Termination::TIMEOUT) {
-    summary.total_cost = INF_DBL;
+    summary.total_cost = Cost::max();
   } else {
     summary.termination = Termination::UNREACHABLE;
-    summary.total_cost = INF_DBL;
+    summary.total_cost = Cost::max();
   }
 
   summary.elapsed_usec = check_timer();

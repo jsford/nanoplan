@@ -62,7 +62,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
   // The open queue is a priority queue containing the frontier.
   // Nodes in open have been reached by the search but have not yet been
   // expanded.
-  PriorityQueue<STATE, double> open;
+  PriorityQueue<STATE, Cost> open;
 
   // The closed set contains nodes that have already been visited and expanded.
   // Once a node goes into the closed set, it will never need to be considered
@@ -75,7 +75,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
   // given state from the start.
   struct NodeData {
     STATE pred;
-    double gscore;
+    Cost gscore;
   };
   ska::flat_hash_map<STATE, NodeData> nodemap;
 
@@ -85,7 +85,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
     // Its cost-to-go, or gscore, is zero,
     // so its priority f is equal to the heuristic h.
     // f = 0 + h;
-    const double h = space->get_from_to_heuristic(start, goal);
+    const Cost h = space->get_from_to_heuristic(start, goal);
     open.insert(start, h);
 
     // The start node backpointer points to itself.
@@ -98,7 +98,7 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
   }
 
   while (true) {
-    if( open.empty() ) {
+    if (open.empty()) {
       summary.termination = Termination::UNREACHABLE;
       break;
     }
@@ -140,8 +140,8 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
     // Examine each successor of curr_state.
     for (const auto& succ : succs) {
       // Calculate tentative_g, the cost to get to succ by way of curr_state.
-      const double succ_cost = space->get_from_to_cost(curr_state, succ);
-      const double tentative_g = curr_gscore + succ_cost;
+      const Cost succ_cost = space->get_from_to_cost(curr_state, succ);
+      const Cost tentative_g = curr_gscore + succ_cost;
 
       // If this is a new route to succ or it is cheaper than our previous
       // route, replace the old information in the bookkeeping data.
@@ -149,10 +149,10 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
           tentative_g < nodemap.at(succ).gscore) {
         // Calculate the heuristic.
         // This estimates the remaining cost to get from succ to goal.
-        double h = space->get_from_to_heuristic(succ, goal);
+        Cost h = space->get_from_to_heuristic(succ, goal);
 
         // Push this successor onto the open queue.
-        const double f = tentative_g + h;
+        const Cost f = tentative_g + h;
         open.insert(succ, f);
 
         // Remember that the best known route to succ is through curr_state.
@@ -166,8 +166,8 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
   }
 
   std::vector<STATE> path;
-  if (summary.termination == Termination::SUCCESS) {
-
+  if (summary.termination == Termination::SUCCESS &&
+      nodemap[goal].gscore < Cost::max()) {
     // If the search succeeded, backtrack to find the least-cost path.
     STATE s = goal;
     while (!(s == start)) {
@@ -180,14 +180,13 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
     summary.total_cost = nodemap[goal].gscore;
   } else if (summary.termination == Termination::TIMEOUT) {
     // If the search timed out, return an empty path with cost 0.
-    summary.total_cost = INF_DBL;
+    summary.total_cost = Cost::max();
   } else if (summary.termination == Termination::TERMINATION_NOT_SET) {
-    // Don't do anything, I guess.    
-    fmt::print("HEY! WHAT THE FUCK!\n");
+    // Don't do anything, I guess.
   } else {
     // If the goal was not reachable, return an empty path with cost 0.
     summary.termination = Termination::UNREACHABLE;
-    summary.total_cost = INF_DBL;
+    summary.total_cost = Cost::max();
   }
 
   // Record the search duration.
