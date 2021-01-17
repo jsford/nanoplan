@@ -22,6 +22,8 @@ sudo make install
 
 ## Usage
 
+Use CMake and find_package to consume an installed version of nanoplan.
+
 ```
 project("nanoplan-example")
 
@@ -30,6 +32,17 @@ find_package(nanoplan CONFIG REQUIRED)
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} nanoplan::nanoplan)
 ```
+
+Alternatively, you can use add_subdirectory to include nanoplan in your project without installing it to the system.
+```
+project("nanoplan-example")
+
+add_subdirectory(nanoplan)
+
+add_executable(${PROJECT_NAME} src/main.cpp)
+target_link_libraries(${PROJECT_NAME} nanoplan::nanoplan)
+```
+
 
 ## Acknowledgements
 Thank you to Carnegie Mellon's [Search Based Planning Lab](http://sbpl.net/) and Professor Maxim Likhachev for inventing and publishing many of the algorithms implemented in nanoplan.
