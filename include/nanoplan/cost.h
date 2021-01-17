@@ -5,7 +5,8 @@ namespace nanoplan {
 
 class Cost {
  public:
-  static const int FP_MULT = 256;
+  // Costs are represented as 24:8 fixed point values.
+  static const int FP_MULT = (1<<8);
 
   static Cost max() {
     Cost c;
@@ -31,6 +32,7 @@ class Cost {
 
   friend Cost operator+(const Cost& lhs, const Cost& rhs);
   friend Cost operator-(const Cost& lhs, const Cost& rhs);
+  friend Cost operator*(const double d, const Cost& rhs);
 
  private:
   int value = 0;
@@ -45,6 +47,12 @@ inline Cost operator+(const Cost& lhs, const Cost& rhs) {
 inline Cost operator-(const Cost& lhs, const Cost& rhs) {
   Cost c;
   c.value = lhs.value - rhs.value;
+  return c;
+}
+
+inline Cost operator*(const double d, const Cost& rhs) {
+  Cost c;
+  c.value = d * rhs.value;
   return c;
 }
 

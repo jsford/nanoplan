@@ -148,19 +148,42 @@ int main(int argc, char** argv) {
 
   auto space2d = std::make_shared<SearchSpace2D>(costs, w, h);
 
-  LPAStar<SearchSpace2D> planner(space2d);
-  auto path = planner.plan(start, goal);
+  std::unique_ptr<Planner<SearchSpace2D>> planner(
+      new LPAStar<SearchSpace2D>(space2d));
+
+  if(argc > 1) {
+    std::string planner_name(argv[1]);
+    if(planner_name == "lpastar") {
+      //planner.reset(new LPAStar<SearchSpace2D>(space2d));
+    } else if(planner_name == "astar") {
+      planner.reset(new AStar<SearchSpace2D>(space2d));
+    } else if(planner_name == "dijkstra") {
+      planner.reset(new Dijkstra<SearchSpace2D>(space2d));
+    } else {
+      fmt::print("{} is not a valid planner option.\n", argv[1]);
+      fmt::print("usage: ./demo_nanoplan <planner>\n");
+      fmt::print("available planners:\n");
+      fmt::print("  \"dijkstra\"\n");
+      fmt::print("  \"astar\"\n");
+      fmt::print("  \"lpastar\"\n");
+      return 0;
+    }
+  }
+
+  auto path = planner->plan(start, goal);
   space2d->render(path, start, goal);
-  auto summary = planner.get_summary();
+  auto summary = planner->get_summary();
 
   int i = 0;
   hidecursor();
   do {
     space2d->add_obstacles();
-    path = planner.replan();
+    path = planner->replan();
     space2d->render(path, start, goal);
-    summary = planner.get_summary();
-    fmt::print("ITER: {} COST: {:0.3f} TIME: {} [ms] EXPANSIONS: {}\n", i++,
+    summary = planner->get_summary();
+    fmt::print(" PLANNER: {} ITER: {} COST: {:0.3f} TIME: {} [ms] EXPANSIONS: {}\n",
+               planner->planner_name(),
+               i++,
                summary.total_cost.as_double(), summary.elapsed_usec / 1000.0,
                summary.expansions);
     usleep(1e5);
