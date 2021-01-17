@@ -24,7 +24,7 @@ sudo make install
 
 ## Usage
 
-**CMake find_package**
+### CMake find_package
 
 Use CMake and find_package to consume an installed version of **nanoplan**.
 
@@ -37,7 +37,7 @@ add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} nanoplan::nanoplan)
 ```
 
-**CMake add_subdirectory**
+### CMake add_subdirectory
 
 Alternatively, you can use add_subdirectory to include **nanoplan** in your project without installing it to the system.
 ```
@@ -49,7 +49,7 @@ add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME} nanoplan::nanoplan)
 ```
 
-**Header-only**
+### Header-only
 
 You can always grab the entire [include/nanoplan/](https://github.com/jsford/nanoplan/tree/master/include/nanoplan) directory and drop it into your project.
 
