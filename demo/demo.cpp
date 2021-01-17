@@ -151,13 +151,13 @@ int main(int argc, char** argv) {
   std::unique_ptr<Planner<SearchSpace2D>> planner(
       new LPAStar<SearchSpace2D>(space2d));
 
-  if(argc > 1) {
+  if (argc > 1) {
     std::string planner_name(argv[1]);
-    if(planner_name == "lpastar") {
-      //planner.reset(new LPAStar<SearchSpace2D>(space2d));
-    } else if(planner_name == "astar") {
+    if (planner_name == "lpastar") {
+      // planner.reset(new LPAStar<SearchSpace2D>(space2d));
+    } else if (planner_name == "astar") {
       planner.reset(new AStar<SearchSpace2D>(space2d));
-    } else if(planner_name == "dijkstra") {
+    } else if (planner_name == "dijkstra") {
       planner.reset(new Dijkstra<SearchSpace2D>(space2d));
     } else {
       fmt::print("{} is not a valid planner option.\n", argv[1]);
@@ -181,11 +181,10 @@ int main(int argc, char** argv) {
     path = planner->replan();
     space2d->render(path, start, goal);
     summary = planner->get_summary();
-    fmt::print(" PLANNER: {} ITER: {} COST: {:0.3f} TIME: {} [ms] EXPANSIONS: {}\n",
-               planner->planner_name(),
-               i++,
-               summary.total_cost.as_double(), summary.elapsed_usec / 1000.0,
-               summary.expansions);
+    fmt::print(
+        " PLANNER: {} ITER: {} COST: {:0.3f} TIME: {} [ms] EXPANSIONS: {}\n",
+        planner->planner_name(), i++, summary.total_cost.as_double(),
+        summary.elapsed_usec / 1000.0, summary.expansions);
     usleep(1e5);
   } while (summary.termination == Termination::SUCCESS);
   showcursor();

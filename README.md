@@ -11,18 +11,17 @@
     <img width="60%" src="images/demo.gif"> 
 </p>
 
-## Install
-
+## Installation
 ```
 git clone github.com/jsford/nanoplan/
 cd nanoplan
-mkdir build
-cd build
+mkdir build && cd build
 cmake ..
-sudo cmake --build . --config Release --target install --
+sudo make install
 ```
 
 ## Usage
+
 ```
 project("nanoplan-example")
 

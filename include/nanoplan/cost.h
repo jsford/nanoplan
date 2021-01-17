@@ -6,7 +6,7 @@ namespace nanoplan {
 class Cost {
  public:
   // Costs are represented as 24:8 fixed point values.
-  static const int FP_MULT = (1<<8);
+  static const int FP_MULT = (1 << 8);
 
   static Cost max() {
     Cost c;

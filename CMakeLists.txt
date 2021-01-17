@@ -8,53 +8,17 @@ project(nanoplan
 option(BUILD_DEMO "Build the planning demo program." ON)
 option(BUILD_TESTS "Build unit tests." ON)
 
-set(CMAKE_CXX_STANDARD 11)
 
 add_library(${PROJECT_NAME} INTERFACE)
-#target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# ---------------------------------------------------------------
-# Build the planning demo program.
-# ---------------------------------------------------------------
+# add alias so the project can be used with add_subdirectory
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-if( ${BUILD_DEMO} )
-  include(FetchContent)
-  FetchContent_Declare(
-    fmt
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 7.1.3
-  )
-  FetchContent_MakeAvailable(fmt)
+# require C++11
+target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_11)
 
-  add_executable(demo_${PROJECT_NAME} demo/demo.cpp)
-  target_link_libraries(demo_${PROJECT_NAME} nanoplan fmt::fmt)
-endif()
-
-# ---------------------------------------------------------------
-# Build the unit tests.
-# ---------------------------------------------------------------
-
-if( ${BUILD_TESTS} )
-  include(FetchContent)
-  FetchContent_Declare(
-    Catch2
-    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v2.13.4
-  )
-  FetchContent_MakeAvailable(Catch2)
-
-  find_package(fmt REQUIRED)
-  add_executable(test_${PROJECT_NAME}
-    test/test_main.cpp
-    test/test_queues.cpp
-    test/test_planners.cpp
-  )
-  target_link_libraries(test_${PROJECT_NAME} nanoplan Catch2 fmt::fmt)
-endif()
-
-# ---------------------------------------------------------------
-# Install
-# ---------------------------------------------------------------
+add_subdirectory(test)
+add_subdirectory(demo)
 
 include(GNUInstallDirs)
 target_include_directories(
@@ -72,14 +36,23 @@ include(CMakePackageConfigHelpers)
 write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
                                  VERSION ${PROJECT_VERSION}
                                  COMPATIBILITY SameMajorVersion)
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
+  "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+  INSTALL_DESTINATION
+  ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
 
 install(EXPORT ${PROJECT_NAME}_Targets
         FILE ${PROJECT_NAME}Targets.cmake
         NAMESPACE ${PROJECT_NAME}::
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
 
+install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+              "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
+
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/nanoplan DESTINATION include)
 
+set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 
-
-
+include(CPack)
