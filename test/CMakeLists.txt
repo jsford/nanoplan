@@ -1,4 +1,4 @@
-if( ${BUILD_TESTS} )
+if( ${NANOPLAN_BUILD_TESTS} )
   enable_testing()
 
   include(FetchContent)
@@ -9,13 +9,12 @@ if( ${BUILD_TESTS} )
   )
   FetchContent_MakeAvailable(Catch2)
 
-  find_package(fmt REQUIRED)
   add_executable(test_${PROJECT_NAME}
     test_main.cpp
     test_queues.cpp
     test_planners.cpp
   )
-  target_link_libraries(test_${PROJECT_NAME} nanoplan Catch2 fmt::fmt)
+  target_link_libraries(test_${PROJECT_NAME} nanoplan Catch2)
 
   include(CTest)
   include(ParseAndAddCatchTests)

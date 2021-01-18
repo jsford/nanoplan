@@ -214,11 +214,6 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::backtrack() {
   while (!(state == start)) {
     const auto& preds = space->get_predecessors(state);
 
-    if (preds.empty()) {
-      fmt::print("NO MORE PREDS FROM {}, {}\n", state.x, state.y);
-      break;
-    }
-
     // Find the cheapest predecessor to this state.
     STATE best_pred = preds.at(0);
     {

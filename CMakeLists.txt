@@ -5,8 +5,8 @@ project(nanoplan
         DESCRIPTION "A C++11 header-only library for search-based robot planning."
         HOMEPAGE_URL "https://github.com/jsford/nanoplan")
 
-option(BUILD_DEMO "Build the planning demo program." ON)
-option(BUILD_TESTS "Build unit tests." ON)
+option(NANOPLAN_BUILD_DEMO "Build the planning demo program." OFF)
+option(NANOPLAN_BUILD_TESTS "Build unit tests." ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 

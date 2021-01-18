@@ -1,4 +1,4 @@
-if( ${BUILD_DEMO} )
+if( ${NANOPLAN_BUILD_DEMO} )
   include(FetchContent)
   FetchContent_Declare(
     fmt

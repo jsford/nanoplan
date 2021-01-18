@@ -1,9 +1,6 @@
 #ifndef NANOPLAN_PRIORITY_QUEUE_H
 #define NANOPLAN_PRIORITY_QUEUE_H
 
-#include <fmt/format.h>  // remove this
-#include <unistd.h>      // remove this
-
 #include <algorithm>
 #include <cassert>
 #include <functional>
@@ -27,15 +24,11 @@ class PriorityQueue {
   void pop() { remove(top()); }
 
   void insert(const VALUE& v, const PRIORITY& p) {
-    // fmt::print("PQ INSERT VALUE {},{} : PRIORITY {}, {}\n", v.x, v.y,
-    // p.first.as_double(), p.second.as_double());
     vec.push_back(HeapEntry{v, p});
     std::push_heap(vec.begin(), vec.end());
-    // print();
   }
 
   void remove(const VALUE& v) {
-    // fmt::print("PQ REMOVE VALUE {},{}\n", v.x, v.y);
     // TRY NOT TO USE THIS. IT IS SLOW AS HELL.
     int i = 0;
     for (; i < vec.size(); ++i) {
@@ -44,24 +37,14 @@ class PriorityQueue {
       }
     }
     if (i == vec.size()) {
-      // print();
       return;
     }
     vec.erase(vec.begin() + i);
     std::make_heap(vec.begin(), vec.end());
-    // print();
   }
 
   bool empty() const { return vec.size() == 0; }
   std::size_t size() const { return vec.size(); }
-
-  void print() const {
-    for (const auto& x : vec) {
-      fmt::print("{},{} : {},{}\n", x.value.x, x.value.y,
-                 x.priority.first.as_double(), x.priority.second.as_double());
-    }
-    fmt::print("\n");
-  }
 
  public:
   std::vector<HeapEntry> vec;
@@ -133,35 +116,6 @@ class PriorityQueueWithRemove {
 
   bool empty() const { return vec.size() == 1; }
   std::size_t size() const { return vec.size() - 1; }
-
-  void print() {
-    fmt::print("------PQ--------\n");
-    for (int i = 1; i < vec.size(); ++i) {
-      const auto& x = vec[i];
-      fmt::print("{},{} : {},{} idx={}\n", x.value.x, x.value.y,
-                 x.priority.first.as_double(), x.priority.second.as_double(),
-                 idx[x.value]);
-    }
-    for (const auto& p : idx) {
-      fmt::print("{} -> {},{}\n", p.second, p.first.x, p.first.y);
-    }
-    fmt::print("\n");
-  }
-
-  bool is_good() const {
-    for (int i = 2; i < vec.size(); ++i) {
-      if (vec[i].priority < vec[1].priority) {
-        auto vi = vec[i].priority;
-        auto v1 = vec[1].priority;
-        fmt::print("GET REKT: {},{} < {},{}\n", vi.first.as_double(),
-                   vi.second.as_double(), v1.first.as_double(),
-                   v1.second.as_double());
-
-        return false;
-      }
-    }
-    return true;
-  }
 
  private:
   struct HeapEntry {
