@@ -6,8 +6,6 @@
     <img src="https://github.com/jsford/nanoplan/workflows/Unit%20Tests/badge.svg">
 </p>
 
-## nanoplan
-
 **nanoplan** is a header-only C++11 library for search-based robot planning. The primary design goals are correctness, ease-of-use, and efficiency (in that order). **nanoplan** currently supports [Dijkstra](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm), [A*](https://en.wikipedia.org/wiki/A*_search_algorithm), and [Lifelong Planning A*](https://en.wikipedia.org/wiki/Lifelong_Planning_A*).
 
 ## Demo
