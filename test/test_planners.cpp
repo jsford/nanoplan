@@ -27,7 +27,7 @@ struct Space2D final : SearchSpace<State2D> {
     return Cost(1.0);
   }
   Cost get_from_to_heuristic(const State2D& from, const State2D& to) override {
-    return Cost(std::max(from.x - to.x, from.y - to.y));
+    return Cost(std::max(std::abs(from.x - to.x), std::abs(from.y - to.y)));
   }
 };
 

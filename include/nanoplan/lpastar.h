@@ -209,17 +209,10 @@ typename LPAStar<SPACE>::Key LPAStar<SPACE>::calculate_key(const STATE& state) {
 template <typename SPACE>
 std::vector<typename SPACE::state_type> LPAStar<SPACE>::backtrack() {
   std::vector<STATE> path;
-  pq.print();
 
-  int i = 0;
   STATE state = goal;
   while (!(state == start)) {
     const auto& preds = space->get_predecessors(state);
-    if (i++ > 500) {
-      fmt::print("BACKTRACKING IS STUCK!\n");
-      summary.termination = Termination::UNREACHABLE;
-      break;
-    }
 
     if (preds.empty()) {
       fmt::print("NO MORE PREDS FROM {}, {}\n", state.x, state.y);
