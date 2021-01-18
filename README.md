@@ -20,7 +20,7 @@ The demo included with **nanoplan** generates a 2d maze and searches for a path 
 git clone github.com/jsford/nanoplan/
 cd nanoplan
 mkdir build && cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 sudo make install
 ```
 
