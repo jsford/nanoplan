@@ -5,6 +5,7 @@
 
 #include "astar.h"
 #include "dijkstra.h"
+#include "dstar_lite.h"
 #include "hash.h"
 #include "hash_map.h"
 #include "lpastar.h"

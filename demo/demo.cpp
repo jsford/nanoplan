@@ -155,6 +155,8 @@ int main(int argc, char** argv) {
     std::string planner_name(argv[1]);
     if (planner_name == "lpastar") {
       // planner.reset(new LPAStar<SearchSpace2D>(space2d));
+    } else if (planner_name == "dstar") {
+      planner.reset(new DStarLite<SearchSpace2D>(space2d));
     } else if (planner_name == "astar") {
       planner.reset(new AStar<SearchSpace2D>(space2d));
     } else if (planner_name == "dijkstra") {
@@ -166,6 +168,7 @@ int main(int argc, char** argv) {
       fmt::print("  \"dijkstra\"\n");
       fmt::print("  \"astar\"\n");
       fmt::print("  \"lpastar\"\n");
+      fmt::print("  \"dstar\"\n");
       return 0;
     }
   }
