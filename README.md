@@ -14,7 +14,7 @@ The demo included with **nanoplan** will generate a 2d maze and search for a pat
 </p>
 
 ## Installation
-```
+```bash
 git clone github.com/jsford/nanoplan/
 cd nanoplan
 mkdir build && cd build
@@ -28,7 +28,7 @@ sudo make install
 
 Use CMake and find_package to consume an installed version of **nanoplan**.
 
-```
+```cmake
 project("nanoplan-example")
 
 find_package(nanoplan CONFIG REQUIRED)
@@ -40,7 +40,8 @@ target_link_libraries(${PROJECT_NAME} nanoplan::nanoplan)
 ### CMake add_subdirectory
 
 Alternatively, you can use add_subdirectory to include **nanoplan** in your project without installing it to the system.
-```
+
+```cmake
 project("nanoplan-example")
 
 add_subdirectory(nanoplan)
