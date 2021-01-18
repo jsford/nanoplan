@@ -16,5 +16,8 @@ if( ${BUILD_TESTS} )
     test_planners.cpp
   )
   target_link_libraries(test_${PROJECT_NAME} nanoplan Catch2 fmt::fmt)
-endif()
 
+  include(CTest)
+  include(ParseAndAddCatchTests)
+  ParseAndAddCatchTests(test_${PROJECT_NAME})
+endif()

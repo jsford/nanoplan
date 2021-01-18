@@ -8,6 +8,7 @@ project(nanoplan
 option(BUILD_DEMO "Build the planning demo program." ON)
 option(BUILD_TESTS "Build unit tests." ON)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 add_library(${PROJECT_NAME} INTERFACE)
 
@@ -54,5 +55,3 @@ install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/nanoplan DESTINATION include)
 
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
-
-include(CPack)
