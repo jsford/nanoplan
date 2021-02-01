@@ -193,9 +193,11 @@ int main(int argc, char** argv) {
         summary.elapsed_usec / 1000.0, summary.expansions,
         summary.expansions / summary.elapsed_usec * (1e3));
 
-    if(move_robot && path.size() >= 2) {
+    if (move_robot && path.size() >= 2) {
       start = path[1];
-      if(start == goal) { break; }
+      if (start == goal) {
+        break;
+      }
     }
 
     usleep(1e5);

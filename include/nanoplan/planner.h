@@ -84,7 +84,8 @@ std::vector<typename SPACE::state_type> Planner<SPACE>::replan() {
   return plan(start, goal);
 }
 template <typename SPACE>
-std::vector<typename SPACE::state_type> Planner<SPACE>::replan(const STATE& start) {
+std::vector<typename SPACE::state_type> Planner<SPACE>::replan(
+    const STATE& start) {
   this->start = start;
   return replan();
 }

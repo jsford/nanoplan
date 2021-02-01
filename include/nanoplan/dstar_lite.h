@@ -84,7 +84,7 @@ std::string DStar<SPACE>::planner_name() const {
 
 template <typename SPACE>
 std::vector<typename SPACE::state_type> DStar<SPACE>::plan(const STATE& from,
-                                                             const STATE& to) {
+                                                           const STATE& to) {
   this->start = from;
   this->goal = to;
 
@@ -128,8 +128,7 @@ void DStar<SPACE>::initialize() {
 }
 
 template <typename SPACE>
-std::vector<typename SPACE::state_type>
-DStar<SPACE>::compute_shortest_path() {
+std::vector<typename SPACE::state_type> DStar<SPACE>::compute_shortest_path() {
   while (true) {
     if (rscores.at(goal) == gscores.at(goal) &&
         gscores.at(goal) < Cost::max()) {
