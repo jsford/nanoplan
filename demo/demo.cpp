@@ -185,9 +185,11 @@ int main(int argc, char** argv) {
     space2d->render(path, start, goal);
     summary = planner->get_summary();
     fmt::print(
-        " PLANNER: {} ITER: {} COST: {:0.3f} TIME: {} [ms] EXPANSIONS: {}\n",
+        " PLANNER: {} ITER: {} COST: {:0.3f} TIME: {} [ms] EXPANSIONS: {} "
+        "RATE: {:0.3f} [kHz]\n",
         planner->planner_name(), i++, summary.total_cost.as_double(),
-        summary.elapsed_usec / 1000.0, summary.expansions);
+        summary.elapsed_usec / 1000.0, summary.expansions,
+        summary.expansions / summary.elapsed_usec * (1e3));
     usleep(1e5);
   } while (summary.termination == Termination::SUCCESS);
   showcursor();
