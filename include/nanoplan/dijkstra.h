@@ -44,10 +44,13 @@ template <typename SPACE>
 std::vector<typename SPACE::state_type> Dijkstra<SPACE>::plan(
     const typename SPACE::state_type& start,
     const typename SPACE::state_type& goal) {
-  start_timer();
   using STATE = typename SPACE::state_type;
 
   summary.termination = Termination::TERMINATION_NOT_SET;
+  summary.expansions = 0;
+  summary.elapsed_usec = 0;
+
+  start_timer();
 
   this->start = start;
   this->goal = goal;

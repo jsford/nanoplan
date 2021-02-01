@@ -48,6 +48,8 @@ std::vector<typename SPACE::state_type> AStar<SPACE>::plan(
   using STATE = typename SPACE::state_type;
 
   summary.termination = Termination::TERMINATION_NOT_SET;
+  summary.expansions = 0;
+  summary.elapsed_usec = 0;
 
   // Time the search for debug and optimization purposes.
   start_timer();
