@@ -23,9 +23,9 @@ class DStar final : public Planner<SPACE> {
 
   std::string planner_name() const override;
 
-  std::vector<STATE> plan(const STATE& from, const STATE& to) override;
-
+  std::vector<STATE> plan(const STATE& start, const STATE& goal) override;
   std::vector<STATE> replan() override;
+  std::vector<STATE> replan(const STATE& start) override;
 
  private:
   struct Key {
@@ -83,10 +83,10 @@ std::string DStar<SPACE>::planner_name() const {
 }
 
 template <typename SPACE>
-std::vector<typename SPACE::state_type> DStar<SPACE>::plan(const STATE& from,
-                                                           const STATE& to) {
-  this->start = from;
-  this->goal = to;
+std::vector<typename SPACE::state_type> DStar<SPACE>::plan(const STATE& start,
+                                                           const STATE& goal) {
+  this->start = start;
+  this->goal = goal;
 
   start_timer();
   summary.elapsed_usec = 0.0;
@@ -103,6 +103,16 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::plan(const STATE& from,
 }
 
 template <typename SPACE>
+std::vector<typename SPACE::state_type> DStar<SPACE>::replan(const STATE& start) {
+  if(this->start == start) {
+    return replan();
+  } else {
+    this->start = start;
+    return plan(start, goal);
+  }
+}
+
+template <typename SPACE>
 std::vector<typename SPACE::state_type> DStar<SPACE>::replan() {
   start_timer();
   summary.expansions = 0;
@@ -115,7 +125,7 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::replan() {
   const auto path = compute_shortest_path();
 
   summary.elapsed_usec = check_timer();
-  summary.total_cost = gscores.at(goal);
+  summary.total_cost = gscores.at(start);
 
   return path;
 }
@@ -123,16 +133,20 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::replan() {
 template <typename SPACE>
 void DStar<SPACE>::initialize() {
   pq = PriorityQueueWithRemove<STATE, Key>();
-  rscores.put(start, 0.0);
-  pq.insert(start, calculate_key(start));
+  gscores.clear();
+  rscores.clear();
+  closed.clear();
+
+  rscores.put(goal, 0.0);
+  pq.insert(goal, calculate_key(goal));
 }
 
 template <typename SPACE>
 std::vector<typename SPACE::state_type> DStar<SPACE>::compute_shortest_path() {
   while (true) {
-    if (rscores.at(goal) == gscores.at(goal) &&
-        gscores.at(goal) < Cost::max()) {
-      if (pq.empty() || pq.top_priority() >= calculate_key(goal)) {
+    if (rscores.at(start) == gscores.at(start) &&
+        gscores.at(start) < Cost::max()) {
+      if (pq.empty() || pq.top_priority() >= calculate_key(start)) {
         summary.termination = Termination::SUCCESS;
         break;
       }
@@ -182,7 +196,7 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::compute_shortest_path() {
 
 template <typename SPACE>
 void DStar<SPACE>::update_node(const STATE& state) {
-  if (!(state == start)) {
+  if (!(state == goal)) {
     Cost new_rscore = Cost::max();
     for (const auto& pred : space->get_predecessors(state)) {
       const Cost r = gscores.at(pred) + space->get_from_to_cost(pred, state);
@@ -210,8 +224,8 @@ template <typename SPACE>
 std::vector<typename SPACE::state_type> DStar<SPACE>::backtrack() {
   std::vector<STATE> path;
 
-  STATE state = goal;
-  while (!(state == start)) {
+  STATE state = start;
+  while (!(state == goal)) {
     const auto& preds = space->get_predecessors(state);
 
     // Find the cheapest predecessor to this state.
@@ -229,8 +243,7 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::backtrack() {
     path.push_back(state);
     state = best_pred;
   }
-  path.push_back(start);
-  std::reverse(path.begin(), path.end());
+  path.push_back(goal);
   return path;
 }
 

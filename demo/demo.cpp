@@ -97,12 +97,12 @@ class SearchSpace2D final : public SearchSpace<State2D> {
         } else if (costmap[i * w + j] > threshold) {
           // New obstacles.
           fmt::print(fmt::fg(fmt::color::yellow), "{}", "\u2588");
-        } else if (state == goal) {
-          // Goal.
-          fmt::print(fmt::fg(fmt::color::red), "\u2588");
         } else if (state == start) {
           // Start.
           fmt::print(fmt::fg(fmt::color::green), "\u2588");
+        } else if (state == goal) {
+          // Goal.
+          fmt::print(fmt::fg(fmt::color::red), "\u2588");
         } else if (std::find(path.begin(), path.end(), state) != path.end()) {
           // Path.
           fmt::print(fmt::fg(fmt::color::blue), "\u2588");
@@ -193,11 +193,11 @@ int main(int argc, char** argv) {
         summary.elapsed_usec / 1000.0, summary.expansions,
         summary.expansions / summary.elapsed_usec * (1e3));
 
+    if (start == goal) {
+      break;
+    }
     if (move_robot && path.size() >= 2) {
       start = path[1];
-      if (start == goal) {
-        break;
-      }
     }
 
     usleep(1e5);

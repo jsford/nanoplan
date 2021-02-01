@@ -22,6 +22,8 @@ class HashMap {
 
   std::size_t size() const { return map.size(); }
 
+  void clear() { map.clear(); }
+
  private:
   ska::flat_hash_map<KEY, VAL> map;
 };

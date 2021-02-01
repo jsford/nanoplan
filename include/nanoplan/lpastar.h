@@ -26,6 +26,7 @@ class LPAStar final : public Planner<SPACE> {
   std::vector<STATE> plan(const STATE& from, const STATE& to) override;
 
   std::vector<STATE> replan() override;
+  std::vector<STATE> replan(const STATE& start) override;
 
  private:
   struct Key {
@@ -103,6 +104,16 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::plan(const STATE& from,
 }
 
 template <typename SPACE>
+std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan(const STATE& start) {
+  if(this->start == start) {
+    return replan();
+  } else {
+    this->start = start;
+    return plan(start, goal);
+  }
+}
+
+template <typename SPACE>
 std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
   start_timer();
   summary.expansions = 0;
@@ -123,6 +134,10 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
 template <typename SPACE>
 void LPAStar<SPACE>::initialize() {
   pq = PriorityQueueWithRemove<STATE, Key>();
+  gscores.clear();
+  rscores.clear();
+  closed.clear();
+
   rscores.put(start, 0.0);
   pq.insert(start, calculate_key(start));
 }
