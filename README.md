@@ -9,7 +9,7 @@
 **nanoplan** is a header-only C++11 library for search-based robot planning. The primary design goals are correctness, ease-of-use, and efficiency (in that order). **nanoplan** currently supports [Dijkstra](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm), [A*](https://en.wikipedia.org/wiki/A*_search_algorithm), [Lifelong Planning A*](https://en.wikipedia.org/wiki/Lifelong_Planning_A*), and (Coming Soon!) [D\* Lite](https://en.wikipedia.org/wiki/D*).
 
 ## Demo
-The demo included with **nanoplan** will generate a 2d maze and search for a path from the top-left to the bottom-right. New obstacles appear with each iteration. Depending on the search algorithm you select, replanning will be much more efficient than planning from scratch.
+The demo included with **nanoplan** generates a 2d maze and searches for a path from the top-left to the bottom-right. New obstacles appear with each iteration. Depending on the search algorithm you select, replanning is much more efficient than planning from scratch.
 
 <p align="center" width="100%">
     <img width="60%" src="images/demo.gif"> 
@@ -20,7 +20,7 @@ The demo included with **nanoplan** will generate a 2d maze and search for a pat
 git clone github.com/jsford/nanoplan/
 cd nanoplan
 mkdir build && cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 sudo make install
 ```
 
