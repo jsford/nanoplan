@@ -8,6 +8,7 @@
 #include <memory>
 #include <random>
 
+#include "argh.h"
 #include "terminal.h"
 
 using namespace nanoplan;
@@ -122,7 +123,7 @@ class SearchSpace2D final : public SearchSpace<State2D> {
 
  private:
   double threshold = 1.0;
-  double prev_threshold = -1.0;
+  double prev_threshold = 10.0;
 };
 
 void fill_random(std::vector<double>& v, double lo, double hi) {
@@ -132,6 +133,10 @@ void fill_random(std::vector<double>& v, double lo, double hi) {
 }
 
 int main(int argc, char** argv) {
+  argh::parser cmdl(argc, argv);
+  std::string planner_name = cmdl(1, "lpastar").str();
+  const bool move_robot = cmdl[{"-m", "--move"}];
+
   int w;
   int h;
   get_terminal_size(w, h);
@@ -151,26 +156,23 @@ int main(int argc, char** argv) {
   std::unique_ptr<Planner<SearchSpace2D>> planner(
       new LPAStar<SearchSpace2D>(space2d));
 
-  if (argc > 1) {
-    std::string planner_name(argv[1]);
-    if (planner_name == "lpastar") {
-      // planner.reset(new LPAStar<SearchSpace2D>(space2d));
-    } else if (planner_name == "dstar") {
-      planner.reset(new DStarLite<SearchSpace2D>(space2d));
-    } else if (planner_name == "astar") {
-      planner.reset(new AStar<SearchSpace2D>(space2d));
-    } else if (planner_name == "dijkstra") {
-      planner.reset(new Dijkstra<SearchSpace2D>(space2d));
-    } else {
-      fmt::print("{} is not a valid planner option.\n", argv[1]);
-      fmt::print("usage: ./demo_nanoplan <planner>\n");
-      fmt::print("available planners:\n");
-      fmt::print("  \"dijkstra\"\n");
-      fmt::print("  \"astar\"\n");
-      fmt::print("  \"lpastar\"\n");
-      fmt::print("  \"dstar\"\n");
-      return 0;
-    }
+  if (planner_name == "lpastar") {
+    // planner.reset(new LPAStar<SearchSpace2D>(space2d));
+  } else if (planner_name == "dstar") {
+    planner.reset(new DStar<SearchSpace2D>(space2d));
+  } else if (planner_name == "astar") {
+    planner.reset(new AStar<SearchSpace2D>(space2d));
+  } else if (planner_name == "dijkstra") {
+    planner.reset(new Dijkstra<SearchSpace2D>(space2d));
+  } else {
+    fmt::print("{} is not a valid planner option.\n", argv[1]);
+    fmt::print("usage: ./demo_nanoplan <planner>\n");
+    fmt::print("available planners:\n");
+    fmt::print("  \"dijkstra\"\n");
+    fmt::print("  \"astar\"\n");
+    fmt::print("  \"lpastar\"\n");
+    fmt::print("  \"dstar\"\n");
+    return 0;
   }
 
   auto path = planner->plan(start, goal);
@@ -181,7 +183,7 @@ int main(int argc, char** argv) {
   hidecursor();
   do {
     space2d->add_obstacles();
-    path = planner->replan();
+    path = planner->replan(start);
     space2d->render(path, start, goal);
     summary = planner->get_summary();
     fmt::print(
@@ -190,6 +192,12 @@ int main(int argc, char** argv) {
         planner->planner_name(), i++, summary.total_cost.as_double(),
         summary.elapsed_usec / 1000.0, summary.expansions,
         summary.expansions / summary.elapsed_usec * (1e3));
+
+    if(move_robot && path.size() >= 2) {
+      start = path[1];
+      if(start == goal) { break; }
+    }
+
     usleep(1e5);
   } while (summary.termination == Termination::SUCCESS);
   showcursor();
