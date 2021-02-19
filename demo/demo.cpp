@@ -1,10 +1,10 @@
 #include <fmt/color.h>
 #include <fmt/format.h>
 #include <nanoplan/nanoplan.h>
-#include <unistd.h>
 
 #include <algorithm>
 #include <chrono>
+#include <thread>
 #include <memory>
 #include <random>
 
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
       start = path[1];
     }
 
-    usleep(1e5);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
   } while (summary.termination == Termination::SUCCESS);
   showcursor();
 
