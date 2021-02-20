@@ -4,9 +4,9 @@
 
 #include <algorithm>
 #include <chrono>
-#include <thread>
 #include <memory>
 #include <random>
+#include <thread>
 
 #include "argh.h"
 #include "terminal.h"

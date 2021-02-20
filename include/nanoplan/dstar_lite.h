@@ -1,6 +1,8 @@
 #ifndef NANOPLAN_DSTAR_H
 #define NANOPLAN_DSTAR_H
 
+#include <fmt/format.h>
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -12,8 +14,6 @@
 #include "planner.h"
 #include "priority_queue.h"
 #include "search_space.h"
-
-#include <fmt/format.h>
 
 namespace nanoplan {
 
@@ -196,9 +196,11 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::compute_shortest_path() {
         if (rscores.at(s) == space->get_from_to_cost(s, curr_state) + g_old) {
           if (!(s == goal)) {
             auto min_c = Cost::max();
-            for(const auto& sp : space->get_successors(s)) {
+            for (const auto& sp : space->get_successors(s)) {
               auto c = space->get_from_to_cost(s, sp) + gscores.at(sp);
-              if( c < min_c ) { min_c = c; }
+              if (c < min_c) {
+                min_c = c;
+              }
             }
             rscores.put(s, min_c);
           }
