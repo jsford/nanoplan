@@ -58,11 +58,10 @@ class LPAStar final : public Planner<SPACE> {
   PriorityQueueWithRemove<STATE, Key> pq;
   HashMap<STATE, Cost> gscores;
   HashMap<STATE, Cost> rscores;
-  ska::flat_hash_set<STATE> closed;
 
   void initialize();
   std::vector<STATE> compute_shortest_path();
-  void update_node(const STATE& state);
+  void update_vertex(const STATE& state);
   Key calculate_key(const STATE& state);
   std::vector<STATE> backtrack();
 
@@ -104,8 +103,9 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::plan(const STATE& from,
 }
 
 template <typename SPACE>
-std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan(const STATE& start) {
-  if(this->start == start) {
+std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan(
+    const STATE& start) {
+  if (this->start == start) {
     return replan();
   } else {
     this->start = start;
@@ -120,7 +120,7 @@ std::vector<typename SPACE::state_type> LPAStar<SPACE>::replan() {
 
   const auto& changed_states = space->get_changed_states();
   for (const auto& s : changed_states) {
-    update_node(s);
+    update_vertex(s);
   }
 
   const auto path = compute_shortest_path();
@@ -136,7 +136,6 @@ void LPAStar<SPACE>::initialize() {
   pq = PriorityQueueWithRemove<STATE, Key>();
   gscores.clear();
   rscores.clear();
-  closed.clear();
 
   rscores.put(start, 0.0);
   pq.insert(start, calculate_key(start));
@@ -171,14 +170,14 @@ LPAStar<SPACE>::compute_shortest_path() {
       gscores.put(curr_state, curr_rscore);
     } else if (curr_gscore < curr_rscore) {
       gscores.put(curr_state, Cost::max());
-      update_node(curr_state);
+      update_vertex(curr_state);
     } else {
       const auto msg = "NANOPLAN ERROR: LPA* is expanding a consistent state.";
       throw std::runtime_error(msg);
     }
 
     for (const auto& succ : space->get_successors(curr_state)) {
-      update_node(succ);
+      update_vertex(succ);
     }
 
     if (options.timeout_ms > 0.0 &&
@@ -197,7 +196,7 @@ LPAStar<SPACE>::compute_shortest_path() {
 }
 
 template <typename SPACE>
-void LPAStar<SPACE>::update_node(const STATE& state) {
+void LPAStar<SPACE>::update_vertex(const STATE& state) {
   if (!(state == start)) {
     Cost new_rscore = Cost::max();
     for (const auto& pred : space->get_predecessors(state)) {

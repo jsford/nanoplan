@@ -13,6 +13,8 @@
 #include "priority_queue.h"
 #include "search_space.h"
 
+#include <fmt/format.h>
+
 namespace nanoplan {
 
 template <typename SPACE>
@@ -57,11 +59,12 @@ class DStar final : public Planner<SPACE> {
   PriorityQueueWithRemove<STATE, Key> pq;
   HashMap<STATE, Cost> gscores;
   HashMap<STATE, Cost> rscores;
-  ska::flat_hash_set<STATE> closed;
+  Cost k = Cost(0);
+  STATE last_start;
 
   void initialize();
   std::vector<STATE> compute_shortest_path();
-  void update_node(const STATE& state);
+  void update_vertex(const STATE& state);
   Key calculate_key(const STATE& state);
   std::vector<STATE> backtrack();
 
@@ -85,6 +88,7 @@ std::string DStar<SPACE>::planner_name() const {
 template <typename SPACE>
 std::vector<typename SPACE::state_type> DStar<SPACE>::plan(const STATE& start,
                                                            const STATE& goal) {
+  this->last_start = start;
   this->start = start;
   this->goal = goal;
 
@@ -103,12 +107,15 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::plan(const STATE& start,
 }
 
 template <typename SPACE>
-std::vector<typename SPACE::state_type> DStar<SPACE>::replan(const STATE& start) {
-  if(this->start == start) {
+std::vector<typename SPACE::state_type> DStar<SPACE>::replan(
+    const STATE& start) {
+  if (this->start == start) {
     return replan();
   } else {
+    this->last_start = this->start;
     this->start = start;
-    return plan(start, goal);
+    k = k + space->get_from_to_heuristic(this->last_start, this->start);
+    return replan();
   }
 }
 
@@ -118,8 +125,9 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::replan() {
   summary.expansions = 0;
 
   const auto& changed_states = space->get_changed_states();
+  // NOTE(Jordan): This part is wrong.
   for (const auto& s : changed_states) {
-    update_node(s);
+    update_vertex(s);
   }
 
   const auto path = compute_shortest_path();
@@ -135,16 +143,16 @@ void DStar<SPACE>::initialize() {
   pq = PriorityQueueWithRemove<STATE, Key>();
   gscores.clear();
   rscores.clear();
-  closed.clear();
 
   rscores.put(goal, 0.0);
   pq.insert(goal, calculate_key(goal));
+  k = Cost(0);
 }
 
 template <typename SPACE>
 std::vector<typename SPACE::state_type> DStar<SPACE>::compute_shortest_path() {
   while (true) {
-    if (rscores.at(start) == gscores.at(start) &&
+    if (rscores.at(start) <= gscores.at(start) &&
         gscores.at(start) < Cost::max()) {
       if (pq.empty() || pq.top_priority() >= calculate_key(start)) {
         summary.termination = Termination::SUCCESS;
@@ -158,25 +166,45 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::compute_shortest_path() {
     }
 
     const auto curr_state = pq.top();
-    pq.pop();
+    const auto key_old = pq.top_priority();
+    const auto key_new = calculate_key(curr_state);
+    fmt::print("CURR: {},{}\n", curr_state.x, curr_state.y);
 
     summary.expansions++;
 
-    const auto curr_rscore = rscores.at(curr_state);
-    const auto curr_gscore = gscores.at(curr_state);
-
-    if (curr_gscore > curr_rscore) {
-      gscores.put(curr_state, curr_rscore);
-    } else if (curr_gscore < curr_rscore) {
-      gscores.put(curr_state, Cost::max());
-      update_node(curr_state);
+    if (key_old < key_new) {
+      pq.insert(curr_state, key_new);
+    } else if (gscores.at(curr_state) > rscores.at(curr_state) ||
+               gscores.at(curr_state) == Cost::max()) {
+      gscores.put(curr_state, rscores.at(curr_state));
+      pq.remove(curr_state);
+      for (const auto& pred : space->get_predecessors(curr_state)) {
+        if (!(pred == goal)) {
+          const auto r = rscores.at(pred);
+          const auto c = space->get_from_to_cost(pred, curr_state);
+          const auto g = gscores.at(curr_state);
+          rscores.put(pred, std::min(r, c + g));
+        }
+        update_vertex(pred);
+      }
     } else {
-      const auto msg = "NANOPLAN ERROR: D* is expanding a consistent state.";
-      throw std::runtime_error(msg);
-    }
-
-    for (const auto& succ : space->get_successors(curr_state)) {
-      update_node(succ);
+      auto g_old = gscores.at(curr_state);
+      gscores.put(curr_state, Cost::max());
+      auto nodes = space->get_predecessors(curr_state);
+      nodes.push_back(curr_state);
+      for (const auto& s : nodes) {
+        if (rscores.at(s) == space->get_from_to_cost(s, curr_state) + g_old) {
+          if (!(s == goal)) {
+            auto min_c = Cost::max();
+            for(const auto& sp : space->get_successors(s)) {
+              auto c = space->get_from_to_cost(s, sp) + gscores.at(sp);
+              if( c < min_c ) { min_c = c; }
+            }
+            rscores.put(s, min_c);
+          }
+        }
+        update_vertex(s);
+      }
     }
 
     if (options.timeout_ms > 0.0 &&
@@ -195,29 +223,24 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::compute_shortest_path() {
 }
 
 template <typename SPACE>
-void DStar<SPACE>::update_node(const STATE& state) {
-  if (!(state == goal)) {
-    Cost new_rscore = Cost::max();
-    for (const auto& pred : space->get_predecessors(state)) {
-      const Cost r = gscores.at(pred) + space->get_from_to_cost(pred, state);
-      new_rscore = std::min(new_rscore, r);
-    }
-    rscores.put(state, new_rscore);
-
-    pq.remove(state);  // remove if present.
-    if (gscores.at(state) != rscores.at(state)) {
-      pq.insert(state, calculate_key(state));
-    }
+void DStar<SPACE>::update_vertex(const STATE& state) {
+  pq.remove(state);
+  if (gscores.at(state) != rscores.at(state) ||
+      gscores.at(state) == Cost::max()) {
+    pq.insert(state, calculate_key(state));
   }
 }
 
 template <typename SPACE>
 typename DStar<SPACE>::Key DStar<SPACE>::calculate_key(const STATE& state) {
-  Key k;
-  k.second = std::min(gscores.at(state), rscores.at(state));
-  k.first = k.second + space->get_from_to_heuristic(state, goal);
-  assert(k.second >= 0 && k.first >= 0);
-  return k;
+  auto g = gscores.at(state);
+  auto r = rscores.at(state);
+  auto h = space->get_from_to_heuristic(state, start);
+
+  Key key;
+  key.first = std::min(g, r + h + k);
+  key.second = std::min(g, r);
+  return key;
 }
 
 template <typename SPACE>
@@ -226,22 +249,22 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::backtrack() {
 
   STATE state = start;
   while (!(state == goal)) {
-    const auto& preds = space->get_predecessors(state);
+    const auto& succs = space->get_successors(state);
 
     // Find the cheapest predecessor to this state.
-    STATE best_pred = preds.at(0);
+    STATE best_succ = succs.at(0);
     {
       Cost min_cost = Cost::max();
-      for (const auto& pred : preds) {
-        Cost new_cost = gscores.at(pred) + space->get_from_to_cost(pred, state);
+      for (const auto& succ : succs) {
+        Cost new_cost = gscores.at(succ) + space->get_from_to_cost(state, succ);
         if (new_cost < min_cost) {
           min_cost = new_cost;
-          best_pred = pred;
+          best_succ = succ;
         }
       }
     }
     path.push_back(state);
-    state = best_pred;
+    state = best_succ;
   }
   path.push_back(goal);
   return path;
