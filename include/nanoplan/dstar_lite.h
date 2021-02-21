@@ -1,8 +1,6 @@
 #ifndef NANOPLAN_DSTAR_H
 #define NANOPLAN_DSTAR_H
 
-#include <fmt/format.h>
-
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -168,7 +166,6 @@ std::vector<typename SPACE::state_type> DStar<SPACE>::compute_shortest_path() {
     const auto curr_state = pq.top();
     const auto key_old = pq.top_priority();
     const auto key_new = calculate_key(curr_state);
-    fmt::print("CURR: {},{}\n", curr_state.x, curr_state.y);
 
     summary.expansions++;
 
