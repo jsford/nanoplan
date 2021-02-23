@@ -59,4 +59,4 @@ You can always grab the entire [include/nanoplan/](https://github.com/jsford/nan
 ## Acknowledgements
 Thank you to Carnegie Mellon's [Search Based Planning Lab](http://sbpl.net/) and Professor Maxim Likhachev for inventing and publishing many of the algorithms implemented in **nanoplan**.
 
-The nanoplan logo is based on "[Robot thinker](https://creativemarket.com/studiostoks/604281-Robot-thinker)", original art licensed from [stduiostoks](http://www.studioks.ru/).
+The nanoplan logo is based on "[Robot thinker](https://creativemarket.com/studiostoks/604281-Robot-thinker)", original art licensed from [studiostoks](http://www.studioks.ru/).
