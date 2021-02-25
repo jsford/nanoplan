@@ -11,6 +11,12 @@ option(NANOPLAN_BUILD_TESTS "Build unit tests." ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+      "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
 add_library(${PROJECT_NAME} INTERFACE)
 
 # add alias so the project can be used with add_subdirectory

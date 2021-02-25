@@ -30,6 +30,14 @@ void hidecursor() {
   info.bVisible = FALSE;
   SetConsoleCursorInfo(consoleHandle, &info);
 }
+
+void showcursor() {
+  HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+  CONSOLE_CURSOR_INFO info;
+  info.dwSize = 100;
+  info.bVisible = TRUE;
+  SetConsoleCursorInfo(consoleHandle, &info);
+}
 #endif /* _WIN32 */
 
 #ifdef __unix__
