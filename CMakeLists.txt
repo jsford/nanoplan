@@ -6,6 +6,7 @@ project(nanoplan
         HOMEPAGE_URL "https://github.com/jsford/nanoplan")
 
 option(NANOPLAN_BUILD_DEMO "Build the planning demo program." ON)
+option(NANOPLAN_BUILD_EXAMPLES "Build the planning example programs." ON)
 option(NANOPLAN_BUILD_TESTS "Build unit tests." ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -18,8 +19,9 @@ add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 # require C++11
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_11)
 
-add_subdirectory(test)
 add_subdirectory(demo)
+add_subdirectory(examples)
+add_subdirectory(test)
 
 include(GNUInstallDirs)
 target_include_directories(
