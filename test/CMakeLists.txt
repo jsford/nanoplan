@@ -1,6 +1,9 @@
 if( ${NANOPLAN_BUILD_TESTS} )
   enable_testing()
 
+  # Allow spaces and special characters in test names.
+  cmake_policy(SET CMP0110 NEW)
+
   include(FetchContent)
   FetchContent_Declare(
     Catch2
