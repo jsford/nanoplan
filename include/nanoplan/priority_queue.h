@@ -21,7 +21,10 @@ class PriorityQueue {
   VALUE top() { return vec[0].value; }
   PRIORITY top_priority() { return vec[0].priority; }
 
-  void pop() { remove(top()); }
+  void pop() { 
+    std::pop_heap(vec.begin(), vec.end());
+    vec.pop_back();
+  }
 
   void insert(const VALUE& v, const PRIORITY& p) {
     vec.push_back(HeapEntry{v, p});
