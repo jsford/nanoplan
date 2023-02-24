@@ -7,7 +7,7 @@ project(nanoplan
 
 option(NANOPLAN_BUILD_DEMO "Build the planning demo program." ON)
 option(NANOPLAN_BUILD_EXAMPLES "Build the planning example programs." ON)
-option(NANOPLAN_BUILD_TESTS "Build unit tests." ON)
+option(NANOPLAN_BUILD_TESTS "Build unit tests." OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 

@@ -134,7 +134,7 @@ void fill_random(std::vector<double>& v, double lo, double hi) {
 
 int main(int argc, char** argv) {
   argh::parser cmdl(argc, argv);
-  std::string planner_name = cmdl(1, "lpastar").str();
+  std::string planner_name = cmdl(1, "astar").str();
   const bool move_robot = cmdl[{"-m", "--move"}];
 
   int w;
@@ -153,11 +153,10 @@ int main(int argc, char** argv) {
 
   auto space2d = std::make_shared<SearchSpace2D>(costs, w, h);
 
-  std::unique_ptr<Planner<SearchSpace2D>> planner(
-      new LPAStar<SearchSpace2D>(space2d));
+  std::unique_ptr<Planner<SearchSpace2D>> planner;
 
   if (planner_name == "lpastar") {
-    // planner.reset(new LPAStar<SearchSpace2D>(space2d));
+    planner.reset(new LPAStar<SearchSpace2D>(space2d));
   } else if (planner_name == "dstar") {
     planner.reset(new DStar<SearchSpace2D>(space2d));
   } else if (planner_name == "astar") {

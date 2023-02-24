@@ -21,7 +21,7 @@ class PriorityQueue {
   VALUE top() { return vec[0].value; }
   PRIORITY top_priority() { return vec[0].priority; }
 
-  void pop() { 
+  void pop() {
     std::pop_heap(vec.begin(), vec.end());
     vec.pop_back();
   }
@@ -76,7 +76,10 @@ class PriorityQueueWithRemove {
   VALUE top() { return vec.at(1).value; }
   PRIORITY top_priority() { return vec.at(1).priority; }
 
-  void pop() { remove(top()); }
+  void pop() {
+    std::pop_heap(vec.begin(), vec.end());
+    vec.pop_back();
+  }
 
   void remove(const VALUE& v) {
     // Quit if you can't find the value to remove.
